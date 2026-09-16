@@ -1,0 +1,269 @@
+@import "tailwindcss";
+
+:root {
+  /* Mistral AI Primary & Sunset Spectrum */
+  --primary: #fa520f;
+  --primary-deep: #cc3a05;
+  --primary-hover: #cc3a05;
+  --primary-foreground: #ffffff;
+
+  --sunshine-300: #ffd06a;
+  --sunshine-500: #ffb83e;
+  --sunshine-700: #ffa110;
+  --sunshine-800: #ff8105;
+  --sunshine-900: #ff8a00;
+  --yellow-saturated: #ffd900;
+
+  /* Warm Cream & Neutral Surfaces */
+  --background: #fafafa;
+  --foreground: #1f1f1f;
+
+  --canvas: #ffffff;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-hover: #fff8e0;
+
+  --cream: #fff8e0;
+  --cream-light: #fffaeb;
+  --cream-deeper: #fff0c2;
+  --beige-deep: #e6d5a8;
+  --surface-cream: #fff8e0;
+  --surface-cream-soft: #fffaeb;
+  --surface-code: #1c1c1e;
+
+  --card: #ffffff;
+  --card-foreground: #1f1f1f;
+  --card-cream: #fff8e0;
+  --card-cream-foreground: #1f1f1f;
+
+  /* Text Spectrum */
+  --ink: #1f1f1f;
+  --ink-tint: #3d3d3d;
+  --charcoal: #2c2c2c;
+  --slate: #4a4a4a;
+  --steel: #6a6a6a;
+  --stone: #8a8a8a;
+  --muted: #f5f5f5;
+  --muted-foreground: #6a6a6a;
+
+  /* Hairlines & Borders */
+  --border: #ededed;
+  --border-subtle: #f5f5f5;
+  --border-strong: #c7c7c7;
+  --hairline: #e5e5e5;
+  --hairline-soft: #ededed;
+  --hairline-strong: #c7c7c7;
+
+  /* Secondary & Accent */
+  --secondary: #fff8e0;
+  --secondary-foreground: #1f1f1f;
+  --accent: #ffa110;
+  --accent-foreground: #ffffff;
+
+  /* Semantic Alerts */
+  --success: #15803d;
+  --success-foreground: #ffffff;
+  --warning: #ff8105;
+  --warning-foreground: #ffffff;
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+  --info: #0284c7;
+  --info-foreground: #ffffff;
+
+  /* Charts: Mistral Sunset Spectrum */
+  --chart-1: #fa520f;
+  --chart-2: #ffa110;
+  --chart-3: #ffd06a;
+  --chart-4: #1f1f1f;
+  --chart-5: #e6d5a8;
+
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #4a4a4a;
+  --sidebar-hover: #fff8e0;
+  --sidebar-active: #fff0c2;
+  --sidebar-active-foreground: #1f1f1f;
+  --sidebar-border: #ededed;
+}
+
+.dark {
+  /* Dark Mode Adaptation */
+  --background: #121214;
+  --foreground: #f4f4f5;
+
+  --canvas: #18181b;
+  --surface: #18181b;
+  --surface-elevated: #222226;
+  --surface-hover: #27272b;
+
+  --cream: #26221c;
+  --cream-light: #2c271f;
+  --cream-deeper: #383024;
+  --beige-deep: #4a4031;
+  --surface-cream: #26221c;
+  --surface-cream-soft: #2c271f;
+  --surface-code: #1c1c1e;
+
+  --card: #18181b;
+  --card-foreground: #f4f4f5;
+  --card-cream: #26221c;
+  --card-cream-foreground: #fff8e0;
+
+  /* Text Spectrum */
+  --ink: #f4f4f5;
+  --ink-tint: #e4e4e7;
+  --charcoal: #d4d4d8;
+  --slate: #a1a1aa;
+  --steel: #8a8a8a;
+  --stone: #71717a;
+  --muted: #222226;
+  --muted-foreground: #9ca3af;
+
+  /* Hairlines & Borders */
+  --border: #27272a;
+  --border-subtle: #1f1f22;
+  --border-strong: #3f3f46;
+  --hairline: #27272a;
+  --hairline-soft: #1f1f22;
+  --hairline-strong: #3f3f46;
+
+  /* Primary & Accent */
+  --primary: #fa520f;
+  --primary-deep: #e04405;
+  --primary-hover: #e04405;
+  --primary-foreground: #ffffff;
+
+  --secondary: #222226;
+  --secondary-foreground: #f4f4f5;
+  --accent: #ffa110;
+  --accent-foreground: #1f1f1f;
+
+  /* Charts */
+  --chart-1: #fa520f;
+  --chart-2: #ffa110;
+  --chart-3: #ffd06a;
+  --chart-4: #f4f4f5;
+  --chart-5: #383024;
+
+  /* Sidebar */
+  --sidebar: #141416;
+  --sidebar-foreground: #a1a1aa;
+  --sidebar-hover: #1f1f23;
+  --sidebar-active: #2a2318;
+  --sidebar-active-foreground: #ffedd5;
+  --sidebar-border: #222226;
+}
+
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-deep: var(--primary-deep);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-sunshine-300: var(--sunshine-300);
+  --color-sunshine-500: var(--sunshine-500);
+  --color-sunshine-700: var(--sunshine-700);
+  --color-sunshine-800: var(--sunshine-800);
+  --color-sunshine-900: var(--sunshine-900);
+  --color-yellow-saturated: var(--yellow-saturated);
+  --color-cream: var(--cream);
+  --color-cream-light: var(--cream-light);
+  --color-cream-deeper: var(--cream-deeper);
+  --color-beige-deep: var(--beige-deep);
+  --color-surface-code: var(--surface-code);
+  --color-ink: var(--ink);
+  --color-charcoal: var(--charcoal);
+  --color-slate: var(--slate);
+  --color-steel: var(--steel);
+  --color-stone: var(--stone);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-hover: var(--surface-hover);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-active-foreground: var(--sidebar-active-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-cormorant), "PP Editorial Old", Georgia, serif;
+  --font-mono: var(--font-mono), "JetBrains Mono", monospace;
+}
+
+/* Base resets & typography */
+* {
+  border-color: var(--border);
+  outline-color: var(--primary);
+}
+
+html, body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mistral Editorial Serif Display Class */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Tabular figures for data, analytics & metrics */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mistral Signature Sunset Stripe Gradient */
+.sunset-stripe {
+  background: linear-gradient(
+    90deg,
+    #fa520f 0%,
+    #ffa110 24%,
+    #ffb83e 50%,
+    #ffd900 75%,
+    #fff8e0 100%
+  );
+}
+
+.sunset-hero-gradient {
+  background: linear-gradient(
+    135deg,
+    #ffa110 0%,
+    #ff8a00 55%,
+    #fa520f 100%
+  );
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Restrained micro-transitions */
+.transition-subtle {
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
