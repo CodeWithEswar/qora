@@ -29,6 +29,7 @@ const PUBLIC_PREFIXES = [
   "/brand",
   "/blog",
   "/p/",
+  "/s/",
   "/favicon",
   "/robots.txt",
   "/sitemap.xml",
