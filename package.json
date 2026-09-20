@@ -2,7 +2,7 @@
   "name": "nxtqr",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@11.12.0",
+  "packageManager": "pnpm@10.6.1",
   "scripts": {
     "dev": "next dev",
     "dev:all": "turbo dev",
