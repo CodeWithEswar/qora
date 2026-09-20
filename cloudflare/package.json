@@ -1,0 +1,14 @@
+{
+  "name": "@nxtqr/cloudflare",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "migrate:local": "wrangler d1 migrations apply DB --local",
+    "migrate:remote": "wrangler d1 migrations apply DB --remote"
+  },
+  "dependencies": {
+    "@nxtqr/contracts": "workspace:*"
+  }
+}

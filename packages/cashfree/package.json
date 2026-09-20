@@ -1,0 +1,21 @@
+{
+  "name": "@nxtqr/cashfree",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nxtqr/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@nxtqr/typescript-config": "workspace:*",
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}

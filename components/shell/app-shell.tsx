@@ -1,10 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { CommandPalette } from "@/components/shell/command-palette";
-import { SunsetStripe } from "@/components/shared/sunset-stripe";
+import { NytraPixelSpectrum } from "@/components/shared/nytra-pixel-spectrum";
+import { PageTransition } from "@/components/motion/page-transition";
 import { cn } from "@/lib/utils";
 
 interface AppShellProps {
@@ -13,6 +15,14 @@ interface AppShellProps {
 }
 
 export function AppShell({ orgSlug, children }: AppShellProps) {
+  const pathname = usePathname();
+  const isLandingStudio = Boolean(
+    pathname?.includes("/landing-pages/") && pathname?.endsWith("/edit")
+  );
+  const isStudio =
+    pathname?.includes("/qr/studio") ||
+    pathname?.includes("/brain") ||
+    isLandingStudio;
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = React.useState(false);
@@ -27,6 +37,12 @@ export function AppShell({ orgSlug, children }: AppShellProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  React.useEffect(() => {
+    const handleOpenMobileSidebar = () => setIsMobileOpen(true);
+    window.addEventListener("nxtqr:open-mobile-sidebar", handleOpenMobileSidebar);
+    return () => window.removeEventListener("nxtqr:open-mobile-sidebar", handleOpenMobileSidebar);
   }, []);
 
   return (
@@ -64,21 +80,41 @@ export function AppShell({ orgSlug, children }: AppShellProps) {
 
       {/* Main Workspace Container */}
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
-        <Topbar
-          orgSlug={orgSlug}
-          onOpenMobileMenu={() => setIsMobileOpen(true)}
-          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-        />
+        {!isLandingStudio && (
+          <Topbar
+            orgSlug={orgSlug}
+            onOpenMobileMenu={() => setIsMobileOpen(true)}
+            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          />
+        )}
 
-        <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
-            {children}
+        <div
+          className={cn(
+            "flex-1 flex flex-col min-w-0",
+            isLandingStudio ? "overflow-hidden h-full" : "overflow-y-auto overflow-x-hidden"
+          )}
+        >
+          <main
+            className={cn(
+              "flex-1 w-full",
+              isLandingStudio
+                ? "p-0 max-w-none h-full flex flex-col overflow-hidden"
+                : isStudio
+                ? "p-0 max-w-none"
+                : "p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto"
+            )}
+          >
+            <PageTransition className={isLandingStudio ? "h-full flex flex-col flex-1 overflow-hidden" : undefined}>
+              {children}
+            </PageTransition>
           </main>
 
-          {/* Mistral Signature Sunset Stripe Closing Band */}
-          <div className="mt-auto w-full">
-            <SunsetStripe height="sm" />
-          </div>
+          {/* NYTRA Pixel Spectrum Closing Band */}
+          {!isStudio && (
+            <div className="mt-auto w-full">
+              <NytraPixelSpectrum height="sm" />
+            </div>
+          )}
         </div>
       </div>
 

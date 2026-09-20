@@ -12,12 +12,13 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  SCAN_ACTIVITY_7D,
-  SCAN_ACTIVITY_30D,
-  SCAN_ACTIVITY_90D,
-  ScanTimeseriesPoint,
-} from "@/lib/mock-data/dashboard";
+export interface ScanTimeseriesPoint {
+  date: string;
+  label: string;
+  scans: number;
+  unique: number;
+}
+import { EmptyState } from "@/components/shared/empty-state";
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -58,20 +59,27 @@ const ChartTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null;
 };
 
-export function ScanActivityChart() {
-  const [timeRange, setTimeRange] = React.useState<"7d" | "30d" | "90d">("30d");
+export interface ScanActivityChartProps {
+  data?: ScanTimeseriesPoint[];
+  initialRange?: "7d" | "30d" | "90d";
+  onRangeChange?: (range: "7d" | "30d" | "90d") => void;
+}
+
+export function ScanActivityChart({
+  data: externalData,
+  initialRange = "30d",
+  onRangeChange,
+}: ScanActivityChartProps = {}) {
+  const [timeRange, setTimeRange] = React.useState<"7d" | "30d" | "90d">(initialRange);
+
+  const handleRangeChange = (val: "7d" | "30d" | "90d") => {
+    setTimeRange(val);
+    onRangeChange?.(val);
+  };
 
   const data: ScanTimeseriesPoint[] = React.useMemo(() => {
-    switch (timeRange) {
-      case "7d":
-        return SCAN_ACTIVITY_7D;
-      case "90d":
-        return SCAN_ACTIVITY_90D;
-      case "30d":
-      default:
-        return SCAN_ACTIVITY_30D;
-    }
-  }, [timeRange]);
+    return externalData || [];
+  }, [externalData]);
 
   return (
     <Card className="col-span-full xl:col-span-8">
@@ -97,9 +105,19 @@ export function ScanActivityChart() {
       </CardHeader>
 
       <CardContent className="pt-2 pb-6 px-3 sm:px-6">
-        <div className="h-[280px] sm:h-[320px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        {data.length === 0 ? (
+          <div className="h-[280px] sm:h-[320px] flex items-center justify-center">
+            <EmptyState
+              preset="analytics"
+              variant="table"
+              className="border-none bg-transparent"
+            />
+          </div>
+        ) : (
+          <>
+          <div className="h-[280px] sm:h-[320px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 {/* Mistral Saturated Orange Gradient */}
                 <linearGradient id="scansGradient" x1="0" y1="0" x2="0" y2="1">
@@ -174,6 +192,8 @@ export function ScanActivityChart() {
             <span className="font-medium text-foreground">Unique Scans</span>
           </div>
         </div>
+        </>
+        )}
       </CardContent>
     </Card>
   );

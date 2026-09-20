@@ -12,8 +12,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { WORKSPACES } from "@/lib/mock-data/organizations";
 import { cn } from "@/lib/utils";
+
+export interface WorkspaceItem {
+  id: string;
+  name: string;
+  slug: string;
+  plan: "free" | "pro" | "business" | "enterprise";
+  role?: string;
+  membersCount?: number;
+}
+
+import { getClientSession } from "@/lib/auth/client-session";
 
 interface OrgSwitcherProps {
   currentOrgSlug: string;
@@ -22,8 +32,45 @@ interface OrgSwitcherProps {
 
 export function OrgSwitcher({ currentOrgSlug, isCollapsed = false }: OrgSwitcherProps) {
   const router = useRouter();
+  const [workspaces, setWorkspaces] = React.useState<WorkspaceItem[]>([]);
+
+  React.useEffect(() => {
+    getClientSession()
+      .then((data) => {
+        if (data?.authenticated && data.user?.workspaces && Array.isArray(data.user.workspaces)) {
+          const mapped: WorkspaceItem[] = data.user.workspaces.map((w: any) => ({
+            id: w.id || w.slug,
+            name: w.name,
+            slug: w.slug,
+            plan: (w.plan?.toLowerCase() || "free") as any,
+            role: w.role,
+            membersCount: 1,
+          }));
+          if (mapped.length > 0) {
+            setWorkspaces(mapped);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const fallbackOrg: WorkspaceItem = React.useMemo(() => {
+    const formattedName = currentOrgSlug
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+    return {
+      id: currentOrgSlug,
+      name: formattedName,
+      slug: currentOrgSlug,
+      plan: "free",
+      membersCount: 1,
+    };
+  }, [currentOrgSlug]);
+
+  const activeWorkspaces = workspaces.length > 0 ? workspaces : [fallbackOrg];
   const currentOrg =
-    WORKSPACES.find((w) => w.slug === currentOrgSlug) || WORKSPACES[0];
+    activeWorkspaces.find((w) => w.slug === currentOrgSlug) || activeWorkspaces[0];
 
   const handleSelect = (slug: string) => {
     router.push(`/${slug}`);
@@ -34,9 +81,12 @@ export function OrgSwitcher({ currentOrgSlug, isCollapsed = false }: OrgSwitcher
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            "group flex w-full items-center gap-2.5 rounded-lg border border-border/70 bg-surface px-2.5 py-2 text-left transition-all hover:bg-surface-hover hover:border-border-strong focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer select-none",
-            isCollapsed && "justify-center px-2 py-2"
+            "group flex items-center rounded-lg border border-border/70 bg-surface text-left transition-all hover:bg-surface-hover hover:border-border-strong focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer select-none",
+            isCollapsed
+              ? "justify-center h-9 w-9 mx-auto p-0"
+              : "w-full gap-2.5 px-2.5 py-2"
           )}
+          title={currentOrg.name}
         >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary font-bold text-xs border border-primary/20">
             {currentOrg.name.charAt(0)}
@@ -62,9 +112,14 @@ export function OrgSwitcher({ currentOrgSlug, isCollapsed = false }: OrgSwitcher
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="start" className="w-56 p-1.5 shadow-xl">
+      <DropdownMenuContent
+        align={isCollapsed ? "start" : "start"}
+        side={isCollapsed ? "right" : "bottom"}
+        sideOffset={isCollapsed ? 12 : 4}
+        className="w-56 p-1.5 shadow-xl"
+      >
         <DropdownMenuLabel className="text-[10px]">Workspaces</DropdownMenuLabel>
-        {WORKSPACES.map((org) => {
+        {activeWorkspaces.map((org) => {
           const isSelected = org.slug === currentOrg.slug;
           return (
             <DropdownMenuItem
@@ -81,7 +136,7 @@ export function OrgSwitcher({ currentOrgSlug, isCollapsed = false }: OrgSwitcher
                     {org.name}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
-                    {org.qrCount} QR codes
+                    {org.role ? org.role.toLowerCase() : "workspace"}
                   </span>
                 </div>
               </div>

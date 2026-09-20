@@ -1,0 +1,723 @@
+openapi: 3.1.0
+info:
+  title: NXTQR Developer Platform API
+  description: Production Contract Layer connecting NXTQR Control Plane, Edge Workers, Queues, Billing, Guardian, Analytics, and Webhooks.
+  version: 1.0.0
+servers:
+  - url: https://nxtqr.vercel.app/api/v1
+    description: Production Environment
+
+paths:
+  /qrs:
+    get:
+      summary: List QR Codes
+      description: Retrieve a paginated collection of QR code assets scoped to the authenticated tenant.
+      security:
+        - BearerAuth: [qrs:read]
+        - ApiKeyAuth: [qrs:read]
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+          description: Keyset pagination cursor
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, ACTIVE, PAUSED, SCHEDULED, EXPIRED, ARCHIVED]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated QR collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QrCollectionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create QR Code Asset
+      description: Creates a new dynamic QR asset. Tenant is strictly resolved from authenticated credential.
+      security:
+        - BearerAuth: [qrs:write]
+        - ApiKeyAuth: [qrs:write]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQrRequest'
+      responses:
+        '201':
+          description: QR Asset Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QrSingleResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /qrs/{qrId}:
+    get:
+      summary: Get QR Code by ID
+      security:
+        - BearerAuth: [qrs:read]
+        - ApiKeyAuth: [qrs:read]
+      parameters:
+        - name: qrId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: QR Asset Details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QrSingleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update QR Metadata
+      security:
+        - BearerAuth: [qrs:write]
+        - ApiKeyAuth: [qrs:write]
+      parameters:
+        - name: qrId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateQrMetadataRequest'
+      responses:
+        '200':
+          description: Updated QR Details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QrSingleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /qrs/{qrId}/publish:
+    post:
+      summary: Publish QR Code Revision
+      description: Explicit command endpoint to publish QR code snapshot to Cloudflare KV Edge.
+      security:
+        - BearerAuth: [qrs:write]
+        - ApiKeyAuth: [qrs:write]
+      parameters:
+        - name: qrId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishQrRequest'
+      responses:
+        '200':
+          description: QR Published successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QrSingleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /qrs/{qrId}/rules:
+    put:
+      summary: Replace QR Routing Rules
+      description: Complete replacement of routing policies with structured, non-executable conditions.
+      security:
+        - BearerAuth: [qrs:write]
+        - ApiKeyAuth: [qrs:write]
+      parameters:
+        - name: qrId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplaceQrRulesRequest'
+      responses:
+        '200':
+          description: Rules replaced successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /qrs/{qrId}/analytics:
+    get:
+      summary: Get QR Scan Analytics
+      description: Retrieve privacy-safe aggregate scan telemetry (total scans, estimated unique scans).
+      security:
+        - BearerAuth: [analytics:read]
+        - ApiKeyAuth: [analytics:read]
+      parameters:
+        - name: qrId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: granularity
+          in: query
+          schema:
+            type: string
+            enum: [hour, day, week, month]
+            default: day
+      responses:
+        '200':
+          description: Analytics Aggregate Data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QrAnalyticsResponse'
+
+  /qrs/{qrId}/share-links:
+    post:
+      summary: Create Secure Share Link
+      description: Generates temporary preview link. Plaintext token revealed ONCE.
+      security:
+        - BearerAuth: [qrs:write]
+        - ApiKeyAuth: [qrs:write]
+      parameters:
+        - name: qrId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShareLinkRequest'
+      responses:
+        '201':
+          description: Share Link Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLinkSingleResponse'
+
+  /campaigns:
+    get:
+      summary: List Campaigns
+      security:
+        - BearerAuth: [campaigns:read]
+        - ApiKeyAuth: [campaigns:read]
+      responses:
+        '200':
+          description: Campaign collection
+    post:
+      summary: Create Campaign
+      security:
+        - BearerAuth: [campaigns:write]
+        - ApiKeyAuth: [campaigns:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignRequest'
+      responses:
+        '201':
+          description: Campaign Created
+
+  /experiments:
+    get:
+      summary: List Experiments
+      security:
+        - BearerAuth: [experiments:read]
+        - ApiKeyAuth: [experiments:read]
+      responses:
+        '200':
+          description: Experiment collection
+    post:
+      summary: Create A/B Experiment
+      security:
+        - BearerAuth: [experiments:write]
+        - ApiKeyAuth: [experiments:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExperimentRequest'
+      responses:
+        '201':
+          description: Experiment Created
+
+  /conversions:
+    post:
+      summary: Record Conversion Occurrence
+      security:
+        - BearerAuth: [conversions:write]
+        - ApiKeyAuth: [conversions:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordConversionRequest'
+      responses:
+        '201':
+          description: Conversion Recorded
+
+  /reports:
+    post:
+      summary: Submit Asynchronous Report Job
+      description: Enqueues heavy CSV/PDF report export. Returns HTTP 202 Accepted.
+      security:
+        - BearerAuth: [reports:write]
+        - ApiKeyAuth: [reports:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportRequest'
+      responses:
+        '202':
+          description: Report Job Queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportJobCreatedResponse'
+
+  /reports/{reportId}:
+    get:
+      summary: Check Report Status
+      security:
+        - BearerAuth: [reports:read]
+        - ApiKeyAuth: [reports:read]
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Report Status & Download URL
+
+  /webhooks:
+    get:
+      summary: List Webhook Endpoints
+      security:
+        - BearerAuth: [webhooks:read]
+        - ApiKeyAuth: [webhooks:read]
+      responses:
+        '200':
+          description: Webhook endpoints collection
+    post:
+      summary: Register Webhook Endpoint
+      description: Registers an outbound webhook. Signing secret is disclosed ONLY ONCE.
+      security:
+        - BearerAuth: [webhooks:manage]
+        - ApiKeyAuth: [webhooks:manage]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhookEndpointRequest'
+      responses:
+        '201':
+          description: Webhook Endpoint Created (Signing secret included)
+
+  /webhooks/{endpointId}:
+    delete:
+      summary: Delete Webhook Endpoint
+      security:
+        - BearerAuth: [webhooks:manage]
+        - ApiKeyAuth: [webhooks:manage]
+      parameters:
+        - name: endpointId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Webhook Endpoint Deleted
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API-Key
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Insufficient scope or plan quota exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found or isolated in another tenant
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: State conflict, stale revision, or idempotency mismatch
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            requestId:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  code:
+                    type: string
+                  message:
+                    type: string
+
+    CreateQrRequest:
+      type: object
+      required: [name, destinationUrl]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        type:
+          type: string
+          default: url
+        mode:
+          type: string
+          enum: [dynamic, static]
+          default: dynamic
+        destinationUrl:
+          type: string
+          format: uri
+        fallbackUrl:
+          type: string
+          format: uri
+        campaignId:
+          type: string
+        folderId:
+          type: string
+
+    UpdateQrMetadataRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        campaignId:
+          type: string
+          nullable: true
+        folderId:
+          type: string
+          nullable: true
+
+    PublishQrRequest:
+      type: object
+      properties:
+        expectedVersion:
+          type: integer
+        changeSummary:
+          type: string
+
+    ReplaceQrRulesRequest:
+      type: object
+      required: [rules]
+      properties:
+        rules:
+          type: array
+          items:
+            type: object
+            required: [name, priority, destinationUrl, conditions]
+            properties:
+              name:
+                type: string
+              priority:
+                type: integer
+              destinationUrl:
+                type: string
+                format: uri
+              matchMode:
+                type: string
+                enum: [ALL, ANY]
+              conditions:
+                type: array
+                items:
+                  type: object
+                  required: [field, operator, value]
+                  properties:
+                    field:
+                      type: string
+                    operator:
+                      type: string
+                    value:
+                      oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                            type: string
+
+    CreateShareLinkRequest:
+      type: object
+      properties:
+        permission:
+          type: string
+          enum: [view, edit]
+          default: view
+        expiresAt:
+          type: string
+          format: date-time
+        password:
+          type: string
+
+    CreateCampaignRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+
+    CreateExperimentRequest:
+      type: object
+      required: [qrId, name, variants]
+      properties:
+        qrId:
+          type: string
+        name:
+          type: string
+        variants:
+          type: array
+          minItems: 2
+          items:
+            type: object
+            required: [name, destinationUrl, trafficWeight]
+            properties:
+              name:
+                type: string
+              destinationUrl:
+                type: string
+                format: uri
+              trafficWeight:
+                type: integer
+
+    RecordConversionRequest:
+      type: object
+      required: [qrId, eventName]
+      properties:
+        qrId:
+          type: string
+        eventName:
+          type: string
+        eventValue:
+          type: number
+        currency:
+          type: string
+        deduplicationId:
+          type: string
+
+    CreateReportRequest:
+      type: object
+      required: [reportType, from, to]
+      properties:
+        reportType:
+          type: string
+          enum: [scans, conversions, audit, guardian]
+        format:
+          type: string
+          enum: [csv, pdf, json]
+          default: csv
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+
+    CreateWebhookEndpointRequest:
+      type: object
+      required: [url, subscribedEvents]
+      properties:
+        url:
+          type: string
+          format: uri
+        description:
+          type: string
+        subscribedEvents:
+          type: array
+          items:
+            type: string
+
+    QrSingleResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            slug:
+              type: string
+            name:
+              type: string
+            status:
+              type: string
+            destinationUrl:
+              type: string
+            scanUrl:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    QrCollectionResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+        page:
+          type: object
+          properties:
+            nextCursor:
+              type: string
+              nullable: true
+            hasMore:
+              type: boolean
+
+    QrAnalyticsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          properties:
+            qrId:
+              type: string
+            metrics:
+              type: object
+              properties:
+                totalScans:
+                  type: integer
+                estimatedUniqueScans:
+                  type: integer
+
+    ShareLinkSingleResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            shareUrl:
+              type: string
+
+    ReportJobCreatedResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          properties:
+            jobId:
+              type: string
+            status:
+              type: string
+            checkStatusUrl:
+              type: string

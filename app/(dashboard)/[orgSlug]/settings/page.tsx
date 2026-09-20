@@ -16,7 +16,7 @@ export default async function SettingsPage({
     <div className="space-y-6 pb-12 max-w-3xl">
       <PageHeader
         breadcrumbs={[
-          { label: "Acme Corp", href: `/${orgSlug}` },
+          { label: orgSlug, href: `/${orgSlug}` },
           { label: "Settings" },
         ]}
         title="Workspace Settings"
@@ -37,13 +37,13 @@ export default async function SettingsPage({
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-foreground">Workspace Name</label>
-            <Input defaultValue="Acme Corp" />
+            <Input defaultValue={orgSlug} />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-foreground">Organization Slug</label>
             <div className="flex items-center">
               <span className="inline-flex items-center px-3 h-9 rounded-l-lg border border-r-0 border-border bg-muted text-xs text-muted-foreground">
-                qora.app/
+                nxtqr.vercel.app/
               </span>
               <Input defaultValue={orgSlug} className="rounded-l-none" />
             </div>

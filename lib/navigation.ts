@@ -4,15 +4,18 @@ import {
   Layers,
   FileSpreadsheet,
   FolderTree,
+  Folder,
   FileText,
   Files,
   BarChart3,
-  Cpu,
+  GitFork,
   FlaskConical,
   ShieldCheck,
+  Scan,
   Users,
   Building2,
   CheckCheck,
+  MessageSquare,
   Activity,
   Palette,
   Globe,
@@ -26,6 +29,7 @@ import {
   History,
   LifeBuoy,
 } from "lucide-react";
+import { BRAND } from "@/lib/brand";
 
 export interface NavItem {
   title: string;
@@ -43,7 +47,7 @@ export interface NavSection {
 
 export const NAVIGATION_SECTIONS: NavSection[] = [
   {
-    title: "PRIMARY",
+    title: "OVERVIEW",
     items: [
       {
         title: "Overview",
@@ -57,7 +61,7 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
     title: "CREATE",
     items: [
       {
-        title: "QR Studio",
+        title: "NXTQR Studio",
         href: (orgSlug) => `/${orgSlug}/qr/studio`,
         pathSegment: "qr/studio",
         icon: QrCode,
@@ -85,7 +89,6 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
         href: (orgSlug) => `/${orgSlug}/qr`,
         pathSegment: "qr",
         icon: QrCode,
-        badge: "42",
       },
       {
         title: "Campaigns",
@@ -97,12 +100,12 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
         title: "Folders",
         href: (orgSlug) => `/${orgSlug}/folders`,
         pathSegment: "folders",
-        icon: FolderTree,
+        icon: Folder,
       },
       {
         title: "Landing Pages",
-        href: (orgSlug) => `/${orgSlug}/pages`,
-        pathSegment: "pages",
+        href: (orgSlug) => `/${orgSlug}/landing-pages`,
+        pathSegment: "landing-pages",
         icon: FileText,
       },
       {
@@ -123,12 +126,12 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
         icon: BarChart3,
       },
       {
-        title: "Qora Brain",
-        href: (orgSlug) => `/${orgSlug}/brain`,
-        pathSegment: "brain",
-        icon: Cpu,
-        badge: "AI",
-        badgeVariant: "indigo",
+        title: "NXTQR Routes",
+        href: (orgSlug) => `/${orgSlug}/routes`,
+        pathSegment: "routes",
+        icon: GitFork,
+        badge: "Smart",
+        badgeVariant: "default",
       },
       {
         title: "Experiments",
@@ -138,12 +141,18 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
         badge: "A/B",
       },
       {
-        title: "Qora Guardian",
+        title: "Guardian",
         href: (orgSlug) => `/${orgSlug}/guardian`,
         pathSegment: "guardian",
         icon: ShieldCheck,
         badge: "Live",
         badgeVariant: "success",
+      },
+      {
+        title: "Scanability",
+        href: (orgSlug) => `/${orgSlug}/scanability`,
+        pathSegment: "scanability",
+        icon: Scan,
       },
     ],
   },
@@ -167,6 +176,12 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
         href: (orgSlug) => `/${orgSlug}/approvals`,
         pathSegment: "approvals",
         icon: CheckCheck,
+      },
+      {
+        title: "Comments",
+        href: (orgSlug) => `/${orgSlug}/comments`,
+        pathSegment: "comments",
+        icon: MessageSquare,
       },
       {
         title: "Activity",
@@ -216,7 +231,7 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
       },
       {
         title: "Documentation",
-        href: () => "https://docs.qora.io",
+        href: () => BRAND.docsUrl,
         pathSegment: "docs",
         icon: BookOpen,
       },
@@ -249,7 +264,7 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
         pathSegment: "billing",
         icon: CreditCard,
         badge: "PRO",
-        badgeVariant: "indigo",
+        badgeVariant: "default",
       },
     ],
   },
@@ -264,7 +279,7 @@ export const BOTTOM_NAV_ITEMS = [
   },
   {
     title: "Help & Support",
-    href: () => "https://help.qora.io",
+    href: () => BRAND.helpUrl,
     pathSegment: "help",
     icon: LifeBuoy,
   },

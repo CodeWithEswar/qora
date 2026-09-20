@@ -1,0 +1,51 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "nxtqr-edge-api",
+  "main": "./workers/redirect/index.ts",
+  "compatibility_date": "2024-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nxtqr-db",
+      "database_id": "6d36ec62-7f19-4d14-ac8f-ba2ba4c93c7b",
+      "migrations_dir": "../packages/db/migrations"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "REDIRECT_KV",
+      "id": "59cdce31e89a4d9693ddfdd2171004e2"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ASSETS_R2",
+      "bucket_name": "nxtqr-assets"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "SCAN_QUEUE",
+        "queue": "nxtqr-scan-telemetry"
+      },
+      {
+        "binding": "SCAN_EVENTS",
+        "queue": "nxtqr-scan-telemetry"
+      },
+      {
+        "binding": "REPORT_QUEUE",
+        "queue": "nxtqr-report-jobs"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "nxtqr-scan-telemetry"
+      }
+    ]
+  },
+  "vars": {
+    "INTERNAL_API_SECRET": "nxtqr_secret_prod_edge_2026"
+  }
+}

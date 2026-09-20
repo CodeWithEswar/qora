@@ -1,0 +1,22 @@
+{
+  "name": "@nxtqr/redirect-worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nxtqr/config": "workspace:*",
+    "@nxtqr/contracts": "workspace:*",
+    "@nxtqr/observability": "workspace:*",
+    "@nxtqr/routing-engine": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240903.0",
+    "@nxtqr/typescript-config": "workspace:*",
+    "typescript": "^5",
+    "wrangler": "^4.132.0"
+  }
+}

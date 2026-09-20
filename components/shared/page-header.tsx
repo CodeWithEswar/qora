@@ -54,8 +54,8 @@ export function PageHeader({
         </nav>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1.5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-normal tracking-tight text-foreground leading-none">
               {title}
@@ -63,14 +63,14 @@ export function PageHeader({
             {badge}
           </div>
           {description && (
-            <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
               {description}
             </p>
           )}
         </div>
 
         {actions && (
-          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
             {actions}
           </div>
         )}

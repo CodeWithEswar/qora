@@ -1,71 +1,15 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { QRPatternEmptyState } from "@/components/shared/qr-decor";
 import { cn } from "@/lib/utils";
 
-interface EmptyStateProps {
-  title: string;
-  description: string;
-  actionLabel?: string;
-  onAction?: () => void;
-  actionHref?: string;
-  icon?: React.ReactNode;
-  secondaryAction?: React.ReactNode;
-  className?: string;
-}
+// Forward and export the proprietary NXTQR Empty State system
+export { EmptyState } from "@/components/empty-state";
+export type { EmptyStateProps, EmptyStateVariant, EmptyStateAction } from "@/components/empty-state";
 
-export function EmptyState({
-  title,
-  description,
-  actionLabel,
-  onAction,
-  actionHref,
-  icon,
-  secondaryAction,
-  className,
-}: EmptyStateProps) {
-  return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-xl border border-dashed border-border bg-surface/40",
-        className
-      )}
-    >
-      <div className="mb-4">
-        {icon ? (
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-surface-elevated border border-border text-muted-foreground">
-            {icon}
-          </div>
-        ) : (
-          <QRPatternEmptyState />
-        )}
-      </div>
-
-      <h3 className="text-base font-semibold text-foreground tracking-tight max-w-sm">
-        {title}
-      </h3>
-      <p className="mt-1.5 text-xs text-muted-foreground max-w-sm leading-relaxed">
-        {description}
-      </p>
-
-      {(actionLabel || secondaryAction) && (
-        <div className="mt-5 flex items-center gap-3">
-          {actionLabel && (
-            <Button
-              size="sm"
-              onClick={onAction}
-              asChild={!!actionHref}
-            >
-              {actionHref ? <a href={actionHref}>{actionLabel}</a> : actionLabel}
-            </Button>
-          )}
-          {secondaryAction}
-        </div>
-      )}
-    </div>
-  );
-}
-
+/**
+ * System Error State
+ * Note: Never use QrEmptyMonogram for error states. System errors use their own visual language.
+ */
 export function ErrorState({
   title = "Something went wrong",
   description = "An error occurred while loading this data. Please try again.",
@@ -80,7 +24,7 @@ export function ErrorState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center p-8 text-center rounded-xl border border-rose-500/20 bg-rose-500/5",
+        "flex flex-col items-center justify-center p-8 text-center rounded-xl border border-rose-500/20 bg-rose-500/5 select-none",
         className
       )}
     >

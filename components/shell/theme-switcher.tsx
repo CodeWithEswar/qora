@@ -3,13 +3,13 @@
 import * as React from "react";
 import { useTheme } from "next-themes";
 import { Sun, Moon, Monitor } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 export function ThemeSwitcher({ className }: { className?: string }) {
   const { setTheme, theme } = useTheme();
@@ -21,19 +21,28 @@ export function ThemeSwitcher({ className }: { className?: string }) {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="iconSm" className={className} aria-label="Toggle theme">
+      <button
+        type="button"
+        className={cn(
+          "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground transition-colors cursor-pointer select-none shrink-0",
+          className
+        )}
+        aria-label="Toggle theme"
+      >
         <Sun className="h-4 w-4 text-muted-foreground" />
-      </Button>
+      </button>
     );
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="iconSm"
-          className={className}
+        <button
+          type="button"
+          className={cn(
+            "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground hover:bg-surface-hover hover:text-foreground transition-colors cursor-pointer select-none shrink-0",
+            className
+          )}
           aria-label="Select theme"
         >
           {theme === "dark" ? (
@@ -44,12 +53,12 @@ export function ThemeSwitcher({ className }: { className?: string }) {
             <Monitor className="h-4 w-4 text-muted-foreground" />
           )}
           <span className="sr-only">Toggle theme</span>
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-36">
         <DropdownMenuItem
           onClick={() => setTheme("light")}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 cursor-pointer text-xs"
         >
           <Sun className="h-4 w-4 text-amber-500" />
           <span>Light</span>
@@ -57,7 +66,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setTheme("dark")}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 cursor-pointer text-xs"
         >
           <Moon className="h-4 w-4 text-indigo-400" />
           <span>Dark</span>
@@ -65,7 +74,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setTheme("system")}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 cursor-pointer text-xs"
         >
           <Monitor className="h-4 w-4 text-muted-foreground" />
           <span>System</span>

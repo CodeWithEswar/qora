@@ -1,0 +1,37 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nxtqr-redirect-worker",
+  "main": "./src/index.ts",
+  "compatibility_date": "2024-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nxtqr-db",
+      "database_id": "6d36ec62-7f19-4d14-ac8f-ba2ba4c93c7b",
+      "migrations_dir": "../../packages/db/migrations"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "REDIRECT_KV",
+      "id": "59cdce31e89a4d9693ddfdd2171004e2"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "SCAN_QUEUE",
+        "queue": "nxtqr-scan-telemetry"
+      },
+      {
+        "binding": "SCAN_EVENTS",
+        "queue": "nxtqr-scan-telemetry"
+      }
+    ]
+  },
+  "vars": {
+    "INTERNAL_API_SECRET": "nxtqr_secret_prod_edge_2026",
+    "DEFAULT_REDIRECT_HOST": "nxtqr.vercel.app"
+  }
+}

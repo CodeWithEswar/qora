@@ -1,40 +1,54 @@
 import * as React from "react";
-import { Palette, Plus, Globe } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
-import { EmptyState } from "@/components/shared/empty-state";
-import { Button } from "@/components/ui/button";
+import { notFound } from "next/navigation";
+import { SupabaseOrgRepository } from "@/lib/supabase/repositories/organizations";
+import { SupabaseBrandKitRepository } from "@/lib/supabase/repositories/brand-kits";
+import { BrandKitsPageClient } from "@/components/brand-kits/brand-kits-page-client";
+import { BrandKitSummaryV1, BrandKitPulseMetrics } from "@nxtqr/contracts";
 
-export default async function BrandKitsPage({
-  params,
-}: {
+export const metadata = {
+  title: "Brand Kits — Visual Identity System | NXTQR",
+  description:
+    "Create, govern, and apply consistent visual identities across QR codes, destination landing pages, and print assets.",
+};
+
+interface PageProps {
   params: Promise<{ orgSlug: string }>;
-}) {
+}
+
+export default async function BrandKitsPage({ params }: PageProps) {
   const { orgSlug } = await params;
 
-  return (
-    <div className="space-y-6 pb-12">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Acme Corp", href: `/${orgSlug}` },
-          { label: "Brand Kits" },
-        ]}
-        title="Brand Kits & Visual Identity"
-        description="Store your company logos, brand color palettes, custom typography, and default QR frame styles."
-        actions={
-          <Button size="sm" className="gap-2 text-xs">
-            <Plus className="h-3.5 w-3.5" />
-            <span>Create Brand Kit</span>
-          </Button>
-        }
-      />
+  const org = await SupabaseOrgRepository.getBySlugOrId(orgSlug);
+  if (!org) {
+    notFound();
+  }
 
-      <EmptyState
-        icon={<Palette className="h-6 w-6 text-primary" />}
-        title="Establish Your Brand Kit"
-        description="Save your logo, primary hex colors, and custom frame designs so your team generates consistent on-brand QR codes every time."
-        actionLabel="Create Brand Kit"
-        onAction={() => {}}
-      />
-    </div>
+  let initialKits: BrandKitSummaryV1[] = [];
+  let pulse: BrandKitPulseMetrics = {
+    totalKits: 0,
+    activeKits: 0,
+    totalAssignedQrs: 0,
+    totalBrandAssets: 0,
+    totalQrPresets: 0,
+  };
+
+  try {
+    const [{ items }, pulseMetrics] = await Promise.all([
+      SupabaseBrandKitRepository.listByOrg(org.id, { status: "all" }),
+      SupabaseBrandKitRepository.getPulseMetrics(org.id),
+    ]);
+
+    initialKits = items;
+    pulse = pulseMetrics;
+  } catch (err) {
+    console.error("[BrandKitsPage] Failed to fetch brand kits from database:", err);
+  }
+
+  return (
+    <BrandKitsPageClient
+      orgSlug={orgSlug}
+      initialKits={initialKits}
+      initialPulse={pulse}
+    />
   );
 }

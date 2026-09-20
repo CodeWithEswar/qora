@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nxtqr-collab-worker",
+  "main": "./src/index.ts",
+  "compatibility_date": "2024-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nxtqr-db",
+      "database_id": "6d36ec62-7f19-4d14-ac8f-ba2ba4c93c7b",
+      "migrations_dir": "../../packages/db/migrations"
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "SERVICE_TIER": "free"
+  }
+}

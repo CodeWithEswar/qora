@@ -20,51 +20,114 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CURRENT_USER } from "@/lib/mock-data/organizations";
+import { cn } from "@/lib/utils";
+import { getClientSession } from "@/lib/auth/client-session";
 
 interface UserMenuProps {
   orgSlug: string;
   isCollapsed?: boolean;
+  side?: "top" | "right" | "bottom" | "left";
+  align?: "start" | "center" | "end";
 }
 
-export function UserMenu({ orgSlug, isCollapsed = false }: UserMenuProps) {
+interface ActiveUser {
+  name: string;
+  email: string;
+  avatarUrl?: string;
+  role?: string;
+}
+
+export function UserMenu({
+  orgSlug,
+  isCollapsed = false,
+  side,
+  align,
+}: UserMenuProps) {
+  const [currentUser, setCurrentUser] = React.useState<ActiveUser | null>(null);
+
+  React.useEffect(() => {
+    getClientSession()
+      .then((data) => {
+        if (data?.authenticated && data.user) {
+          setCurrentUser({
+            name: data.user.name || "User",
+            email: data.user.email || "",
+            avatarUrl: data.user.avatarUrl,
+            role: "Owner",
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const displayName = currentUser?.name || "Account";
+  const displayEmail = currentUser?.email || "";
+  const initials = currentUser?.name
+    ? currentUser.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "U";
+
+  const handleSignOut = () => {
+    window.location.href = "/api/auth/signout";
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="flex items-center gap-2.5 w-full rounded-lg p-1.5 transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer select-none"
-          title={CURRENT_USER.name}
+          className={cn(
+            "flex items-center rounded-lg transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary cursor-pointer select-none",
+            isCollapsed
+              ? "justify-center h-8 w-8 p-0 border border-border bg-surface shrink-0"
+              : "gap-2.5 w-full p-1.5"
+          )}
+          title={displayName}
         >
-          <Avatar className="h-7 w-7 border border-border">
-            <AvatarImage src={CURRENT_USER.avatar} alt={CURRENT_USER.name} />
-            <AvatarFallback className="text-[11px]">AR</AvatarFallback>
+          <Avatar className={cn("border-0 shrink-0", isCollapsed ? "h-6 w-6" : "h-7 w-7 border border-border")}>
+            {currentUser?.avatarUrl && (
+              <AvatarImage src={currentUser.avatarUrl} alt={displayName} />
+            )}
+            <AvatarFallback className="text-[10px] font-semibold bg-primary/10 text-primary">
+              {initials}
+            </AvatarFallback>
           </Avatar>
 
           {!isCollapsed && (
             <div className="flex flex-col text-left min-w-0 leading-tight">
               <span className="truncate text-xs font-medium text-foreground">
-                {CURRENT_USER.name}
+                {displayName}
               </span>
               <span className="truncate text-[10px] text-muted-foreground">
-                {CURRENT_USER.email}
+                {displayEmail}
               </span>
             </div>
           )}
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-56 p-1.5 shadow-xl">
+      <DropdownMenuContent
+        align={align ?? (isCollapsed ? "end" : "end")}
+        side={side ?? (isCollapsed ? "right" : "top")}
+        sideOffset={isCollapsed ? 8 : 6}
+        className="w-56 p-1.5 shadow-xl border-border"
+      >
         <DropdownMenuLabel className="font-normal py-1.5">
           <div className="flex flex-col space-y-1">
             <p className="text-xs font-semibold leading-none text-foreground">
-              {CURRENT_USER.name}
+              {displayName}
             </p>
-            <p className="text-[11px] leading-none text-muted-foreground">
-              {CURRENT_USER.email}
-            </p>
+            {displayEmail && (
+              <p className="text-[11px] leading-none text-muted-foreground truncate">
+                {displayEmail}
+              </p>
+            )}
             <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded w-fit">
               <Sparkles className="h-2.5 w-2.5" />
-              {CURRENT_USER.role}
+              {currentUser?.role || "Owner"}
             </span>
           </div>
         </DropdownMenuLabel>
@@ -73,21 +136,15 @@ export function UserMenu({ orgSlug, isCollapsed = false }: UserMenuProps) {
 
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href={`/${orgSlug}/settings/profile`} className="cursor-pointer">
-              <User className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-              <span>Profile Settings</span>
+            <Link href={`/${orgSlug}/settings`} className="cursor-pointer">
+              <Settings className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+              <span>Workspace Preferences</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href={`/${orgSlug}/billing`} className="cursor-pointer">
               <CreditCard className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
               <span>Subscription & Billing</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href={`/${orgSlug}/settings`} className="cursor-pointer">
-              <Settings className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-              <span>Workspace Preferences</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -113,7 +170,7 @@ export function UserMenu({ orgSlug, isCollapsed = false }: UserMenuProps) {
 
         <DropdownMenuItem
           className="text-rose-600 dark:text-rose-400 cursor-pointer focus:bg-rose-500/10 focus:text-rose-600"
-          onClick={() => alert("Sign out action triggered.")}
+          onClick={handleSignOut}
         >
           <LogOut className="mr-2 h-3.5 w-3.5" />
           <span>Sign Out</span>

@@ -19,7 +19,18 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@nxtqr/contracts": ["./packages/contracts/src"],
+      "@nxtqr/config": ["./packages/config/src"],
+      "@nxtqr/observability": ["./packages/observability/src"],
+      "@nxtqr/routing-engine": ["./packages/routing-engine/src"],
+      "@nxtqr/billing": ["./packages/billing/src"],
+      "@nxtqr/cashfree": ["./packages/cashfree/src"],
+      "@nxtqr/permissions": ["./packages/permissions/src"],
+      "@nxtqr/entitlements": ["./packages/entitlements/src"],
+      "@nxtqr/qr-core": ["./packages/qr-core/src"],
+      "@nxtqr/collaboration": ["./packages/collaboration/src"],
+      "@nxtqr/db": ["./packages/db/src"]
     }
   },
   "include": [
@@ -30,5 +41,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "cloudflare", "apps"]
 }

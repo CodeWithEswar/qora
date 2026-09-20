@@ -31,11 +31,15 @@ export function DataTable({
       {filterSlot && <div className="flex items-center justify-between gap-3">{filterSlot}</div>}
 
       <div className="rounded-xl border border-border bg-card overflow-hidden shadow-2xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            {children}
-          </table>
-        </div>
+        {emptyState ? (
+          <div className="p-6">{emptyState}</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              {children}
+            </table>
+          </div>
+        )}
 
         {pagination && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-border bg-surface text-muted-foreground text-xs">

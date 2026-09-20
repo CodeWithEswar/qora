@@ -4,11 +4,37 @@ import * as React from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Smartphone, Monitor, Globe } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { DEVICE_BREAKDOWN } from "@/lib/mock-data/dashboard";
+import { EmptyState } from "@/components/shared/empty-state";
+
+export interface DeviceShare {
+  name: string;
+  value: number;
+  percentage: string;
+  color: string;
+}
 
 const COLORS = ["#fa520f", "#ffa110", "#ffd06a", "#a8a8a8"];
 
-export function DeviceBreakdownChart() {
+export interface DeviceBreakdownChartProps {
+  data?: DeviceShare[];
+  mobilePercentage?: number;
+}
+
+export function DeviceBreakdownChart({
+  data: externalData,
+  mobilePercentage: externalMobilePct,
+}: DeviceBreakdownChartProps = {}) {
+  const items = externalData !== undefined ? externalData : [];
+
+  const mobilePct = externalMobilePct !== undefined
+    ? externalMobilePct
+    : items.reduce((acc, item) => {
+        if (item.name.toLowerCase().includes("mobile") || item.name === "iOS" || item.name === "Android") {
+          return acc + (item.value || 0);
+        }
+        return acc;
+      }, 0);
+
   const iconMap: Record<string, React.ReactNode> = {
     iOS: <Smartphone className="h-3.5 w-3.5 text-primary" />,
     Android: <Smartphone className="h-3.5 w-3.5 text-[#ffa110]" />,
@@ -24,9 +50,18 @@ export function DeviceBreakdownChart() {
       </CardHeader>
 
       <CardContent className="pt-2 pb-6 flex flex-col justify-between flex-1">
-        {/* Donut Chart */}
-        <div className="relative h-44 w-full flex items-center justify-center">
-          <ResponsiveContainer width="100%" height="100%">
+        {items.length === 0 ? (
+          <div className="h-44 flex items-center justify-center">
+            <EmptyState
+              preset="devices"
+              variant="card"
+              className="border-none bg-transparent p-4"
+            />
+          </div>
+        ) : (
+          <>
+            <div className="relative h-44 w-full flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Tooltip
                 content={({ active, payload }) => {
@@ -45,7 +80,7 @@ export function DeviceBreakdownChart() {
                 }}
               />
               <Pie
-                data={DEVICE_BREAKDOWN}
+                data={items}
                 cx="50%"
                 cy="50%"
                 innerRadius={52}
@@ -53,17 +88,17 @@ export function DeviceBreakdownChart() {
                 paddingAngle={3}
                 dataKey="value"
               >
-                {DEVICE_BREAKDOWN.map((_, index) => (
+                {items.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
             </PieChart>
           </ResponsiveContainer>
 
-          {/* Center Badge with Serif Stat Display */}
+          {/* Center Badge with Dynamic Stat Display */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="font-display text-2xl font-normal tracking-tight text-foreground tabular-nums">
-              92%
+              {mobilePct.toFixed(0)}%
             </span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
               Mobile OS
@@ -73,10 +108,10 @@ export function DeviceBreakdownChart() {
 
         {/* Legend List */}
         <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-border-subtle">
-          {DEVICE_BREAKDOWN.map((item) => (
+          {items.map((item) => (
             <div key={item.name} className="flex items-center justify-between text-xs p-1.5 rounded-md bg-surface-hover/60">
               <div className="flex items-center gap-1.5">
-                {iconMap[item.name]}
+                {iconMap[item.name] || <Globe className="h-3.5 w-3.5 text-muted-foreground" />}
                 <span className="font-medium text-foreground">{item.name}</span>
               </div>
               <span className="font-semibold tabular-nums text-muted-foreground">
@@ -85,6 +120,8 @@ export function DeviceBreakdownChart() {
             </div>
           ))}
         </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

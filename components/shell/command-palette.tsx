@@ -6,19 +6,20 @@ import {
   Search,
   QrCode,
   FolderTree,
-  Cpu,
+  Folder,
+  GitFork,
   BarChart3,
   ShieldCheck,
   UserPlus,
   Plus,
   ArrowRight,
   Settings,
-  Layers,
   CreditCard,
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { TOP_QR_CODES } from "@/lib/mock-data/dashboard";
+import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/shared/empty-state";
 
 interface CommandPaletteProps {
   orgSlug: string;
@@ -55,7 +56,7 @@ export function CommandPalette({ orgSlug, isOpen, onClose }: CommandPaletteProps
       {
         id: "act-create-qr",
         title: "Create New QR Code",
-        subtitle: "Launch QR Studio editor",
+        subtitle: "Launch NXTQR Studio editor",
         category: "Actions",
         icon: Plus,
         action: () => router.push(`/${orgSlug}/qr/studio`),
@@ -78,24 +79,32 @@ export function CommandPalette({ orgSlug, isOpen, onClose }: CommandPaletteProps
       },
       // Navigation
       {
-        id: "nav-brain",
-        title: "Open Qora Brain",
-        subtitle: "Rule-based dynamic routing intelligence",
+        id: "nav-folders",
+        title: "Open Folders",
+        subtitle: "Organize and curate QR assets into dedicated spaces",
         category: "Navigation",
-        icon: Cpu,
-        action: () => router.push(`/${orgSlug}/brain`),
+        icon: Folder,
+        action: () => router.push(`/${orgSlug}/folders`),
+      },
+      {
+        id: "nav-routes",
+        title: "Open NXTQR Routes",
+        subtitle: "Route every scan to the right destination",
+        category: "Navigation",
+        icon: GitFork,
+        action: () => router.push(`/${orgSlug}/routes`),
       },
       {
         id: "nav-analytics",
-        title: "Open Analytics",
-        subtitle: "Deep-dive scan metrics & traffic funnels",
+        title: "Open NXTQR Analytics",
+        subtitle: "Deep-dive scan metrics & audience intelligence",
         category: "Navigation",
         icon: BarChart3,
         action: () => router.push(`/${orgSlug}/analytics`),
       },
       {
         id: "nav-guardian",
-        title: "Open Qora Guardian",
+        title: "Open NXTQR Guardian",
         subtitle: "Destination uptime and broken link monitor",
         category: "Navigation",
         icon: ShieldCheck,
@@ -115,31 +124,21 @@ export function CommandPalette({ orgSlug, isOpen, onClose }: CommandPaletteProps
         subtitle: "General workspace configuration",
         category: "Navigation",
         icon: Settings,
-      action: () => router.push(`/${orgSlug}/settings`),
-    },
-    // QR Codes
-    ...TOP_QR_CODES.map((qr) => ({
-      id: `qr-${qr.id}`,
-      title: qr.name,
-      subtitle: `${qr.shortCode} • ${qr.scans.toLocaleString()} scans`,
-      category: "QR Codes" as const,
-      icon: QrCode,
-      action: () => router.push(`/${orgSlug}/qr`),
-    })),
-  ];
+        action: () => router.push(`/${orgSlug}/settings`),
+      },
+    ];
 
-  if (!query.trim()) return list;
+    if (!query.trim()) return list;
 
-  const lower = query.toLowerCase();
-  return list.filter(
-    (item) =>
-      item.title.toLowerCase().includes(lower) ||
-      (item.subtitle && item.subtitle.toLowerCase().includes(lower)) ||
-      item.category.toLowerCase().includes(lower)
-  );
-}, [query, orgSlug, router]);
+    const lower = query.toLowerCase();
+    return list.filter(
+      (item) =>
+        item.title.toLowerCase().includes(lower) ||
+        (item.subtitle && item.subtitle.toLowerCase().includes(lower)) ||
+        item.category.toLowerCase().includes(lower)
+    );
+  }, [query, orgSlug, router]);
 
-  // Group items by category
   const categories = ["Actions", "Navigation", "QR Codes", "Campaigns"] as const;
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -175,7 +174,7 @@ export function CommandPalette({ orgSlug, isOpen, onClose }: CommandPaletteProps
               setSelectedIndex(0);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Type a command or search Qora..."
+            placeholder={`Type a command or search ${BRAND.name}...`}
             className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
           <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 font-mono text-[10px] text-muted-foreground">
@@ -186,8 +185,17 @@ export function CommandPalette({ orgSlug, isOpen, onClose }: CommandPaletteProps
         {/* Results List */}
         <div className="max-h-80 overflow-y-auto p-2">
           {items.length === 0 ? (
-            <div className="py-8 text-center text-xs text-muted-foreground">
-              No results found for &ldquo;{query}&rdquo;
+            <div className="py-4 px-2 flex items-center justify-center">
+              <EmptyState
+                preset="search"
+                title={`No results for "${query}"`}
+                description="Try another command or clear your search term."
+                variant="filtered"
+                action={{
+                  label: "Clear search",
+                  onClick: () => setQuery(""),
+                }}
+              />
             </div>
           ) : (
             categories.map((category) => {
@@ -214,7 +222,7 @@ export function CommandPalette({ orgSlug, isOpen, onClose }: CommandPaletteProps
                           }}
                           onMouseEnter={() => setSelectedIndex(itemGlobalIndex)}
                           className={cn(
-                            "flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer text-xs transition-colors",
+                            "flex items-center justify-between px-2.5 py-2 rounded-md cursor-pointer text-xs transition-colors",
                             isSelected
                               ? "bg-primary/10 text-primary"
                               : "text-foreground hover:bg-surface-hover"
@@ -268,7 +276,7 @@ export function CommandPalette({ orgSlug, isOpen, onClose }: CommandPaletteProps
               <kbd className="font-mono bg-muted px-1.5 rounded border border-border">↵</kbd> to select
             </span>
           </div>
-          <span>Qora Global Search</span>
+          <span>{BRAND.name} Global Search</span>
         </div>
       </DialogContent>
     </Dialog>
