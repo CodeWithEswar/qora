@@ -104,12 +104,46 @@ export default function RootLayout({
 }>) {
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "NXTQR",
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Cloud, Edge",
-    description: siteConfig.description,
-    url: siteConfig.url,
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteConfig.url}/#organization`,
+        name: "NXTQR",
+        url: siteConfig.url,
+        logo: `${siteConfig.url}/brand/og/nxtqr-og.png`,
+        description: siteConfig.description,
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "Customer Support",
+          email: "support@nxtqr.vercel.app",
+        },
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteConfig.url}/#website`,
+        url: siteConfig.url,
+        name: "NXTQR",
+        description: siteConfig.description,
+        publisher: {
+          "@id": `${siteConfig.url}/#organization`,
+        },
+        inLanguage: "en-US",
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${siteConfig.url}/#application`,
+        name: "NXTQR — Smart QR Infrastructure",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Cloud, Web, Edge",
+        description: siteConfig.description,
+        url: siteConfig.url,
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+        },
+      },
+    ],
   };
 
   return (
