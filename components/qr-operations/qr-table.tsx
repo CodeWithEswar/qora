@@ -410,6 +410,17 @@ export function QrTable({
                             <BarChart2 className="h-3.5 w-3.5" />
                             <span>Quick Inspect</span>
                           </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={qr.scanUrl || `https://nxtqr.vercel.app/s/${qr.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 cursor-pointer"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                              <span>Test Inbound Scan</span>
+                            </a>
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => onDownload(qr)}>
                             <Download className="h-3.5 w-3.5" />
                             <span>Download QR</span>

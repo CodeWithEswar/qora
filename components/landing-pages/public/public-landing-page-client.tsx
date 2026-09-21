@@ -30,13 +30,16 @@ export function PublicLandingPageClient({
   // Asynchronous non-blocking visitor impression telemetry beacon
   useEffect(() => {
     try {
+      const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const qrId = urlParams?.get("qr_id") || undefined;
       fetch("/api/v1/landing-pages/telemetry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pageId: page.id,
           eventType: "view",
-          versionId,
+          versionId: versionId || undefined,
+          qrId,
           deviceType: getDeviceType(),
           referrer: window.document.referrer || "direct",
         }),
@@ -51,13 +54,16 @@ export function PublicLandingPageClient({
   // Asynchronous non-blocking CTA click telemetry beacon
   const handleActionClick = (actionId: string, actionType: string) => {
     try {
+      const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const qrId = urlParams?.get("qr_id") || undefined;
       fetch("/api/v1/landing-pages/telemetry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pageId: page.id,
           eventType: "action_click",
-          versionId,
+          versionId: versionId || undefined,
+          qrId,
           actionId,
           actionType,
           deviceType: getDeviceType(),

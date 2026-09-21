@@ -148,7 +148,16 @@ export function QrInspectorSheet({
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground font-mono">
               <span>ID: {qr.id}</span>
               <span className="text-muted-foreground/40 hidden xs:inline">&middot;</span>
-              <span className="text-primary font-medium">/q/{qr.slug}</span>
+              <a
+                href={publicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary font-medium hover:underline inline-flex items-center gap-0.5"
+                title="Open scan resolver link in new tab"
+              >
+                <span>/s/{qr.slug}</span>
+                <ExternalLink className="h-2.5 w-2.5 opacity-70" />
+              </a>
             </div>
           </SheetHeader>
 
@@ -178,20 +187,27 @@ export function QrInspectorSheet({
                 <div className="text-[11px] text-muted-foreground">
                   {qr.mode === "dynamic" ? "Dynamic Routing" : "Static Resolution"}
                 </div>
-                <div className="pt-0.5 min-w-0">
+                <div className="pt-0.5 min-w-0 flex items-center gap-1.5 flex-wrap">
+                  <a
+                    href={publicUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary transition-colors cursor-pointer text-[11px] font-medium max-w-full"
+                    title="Simulate / Test Inbound Scan"
+                  >
+                    <span className="font-mono truncate">/s/{qr.slug}</span>
+                    <ExternalLink className="h-3 w-3 shrink-0 opacity-70 group-hover:opacity-100" />
+                  </a>
                   <button
                     type="button"
                     onClick={handleCopyUrl}
-                    className="group inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary/5 hover:bg-primary/10 border border-primary/20 text-primary transition-colors cursor-pointer min-w-0 max-w-full"
+                    className="p-1 rounded hover:bg-neutral-200/60 dark:hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                     title="Copy public scan link"
                   >
-                    <span className="font-mono text-[11px] truncate">
-                      /s/{qr.slug}
-                    </span>
                     {copied ? (
-                      <Check className="h-3 w-3 text-emerald-600 shrink-0" />
+                      <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                     ) : (
-                      <Copy className="h-3 w-3 text-primary/70 group-hover:text-primary shrink-0" />
+                      <Copy className="h-3.5 w-3.5 shrink-0" />
                     )}
                   </button>
                 </div>

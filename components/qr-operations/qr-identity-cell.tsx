@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { QrThumbnail } from "./qr-thumbnail";
 import { cn } from "@/lib/utils";
@@ -33,14 +33,15 @@ export function QrIdentityCell({
 }: QrIdentityCellProps) {
   const [copied, setCopied] = React.useState(false);
 
+  const resolvedScanUrl = scanUrl || `https://nxtqr.vercel.app/s/${slug}`;
+
   const handleCopyUrl = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const urlToCopy = scanUrl || `https://nxtqr.vercel.app/s/${slug}`;
-      await navigator.clipboard.writeText(urlToCopy);
+      await navigator.clipboard.writeText(resolvedScanUrl);
       setCopied(true);
       toast.success("QR URL copied", {
-        description: urlToCopy,
+        description: resolvedScanUrl,
       });
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -92,9 +93,17 @@ export function QrIdentityCell({
           </span>
           <span className="text-border/80">&middot;</span>
           <div className="flex items-center gap-1 group/slug">
-            <span className="font-mono text-[11px] text-muted-foreground truncate">
-              /q/{slug}
-            </span>
+            <a
+              href={resolvedScanUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="font-mono text-[11px] text-muted-foreground hover:text-primary hover:underline transition-colors truncate flex items-center gap-0.5"
+              title="Test QR Resolver link (simulates scan)"
+            >
+              <span>/s/{slug}</span>
+              <ExternalLink className="h-2.5 w-2.5 opacity-60 group-hover/slug:opacity-100" />
+            </a>
             <button
               type="button"
               onClick={handleCopyUrl}

@@ -194,9 +194,16 @@ export function QrGrid({
                 <div className="font-semibold text-sm text-foreground truncate px-2">
                   {qr.name}
                 </div>
-                <div className="font-mono text-xs text-primary truncate">
-                  /q/{qr.slug}
-                </div>
+                <a
+                  href={qr.scanUrl || `https://nxtqr.vercel.app/s/${qr.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-mono text-xs text-primary hover:underline truncate inline-block"
+                  title="Open test scan in new tab"
+                >
+                  /s/{qr.slug}
+                </a>
               </div>
             </div>
 

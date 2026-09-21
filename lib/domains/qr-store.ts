@@ -188,7 +188,27 @@ export class QrStore {
       const { data: rows, error } = await query;
 
       if (!error && rows) {
-        return rows.map((r: any) => {
+        const qrIds = rows.map((r: any) => r.id);
+        const scanStats: Record<string, { totalScans: number; uniqueScans: number }> = {};
+
+        if (qrIds.length > 0) {
+          const { data: scanRows } = await supabase
+            .from("scan_events_hourly")
+            .select("qr_id, total_scans, unique_scans")
+            .in("qr_id", qrIds);
+
+          if (scanRows) {
+            for (const s of scanRows) {
+              if (!scanStats[s.qr_id]) {
+                scanStats[s.qr_id] = { totalScans: 0, uniqueScans: 0 };
+              }
+              scanStats[s.qr_id].totalScans += Number(s.total_scans || 0);
+              scanStats[s.qr_id].uniqueScans += Number(s.unique_scans || 0);
+            }
+          }
+        }
+
+        const mapped = rows.map((r: any) => {
           const draft = Array.isArray(r.qr_drafts) ? r.qr_drafts[0] : r.qr_drafts;
           let design = CANONICAL_QR_DESIGN_DEFAULTS;
           if (draft?.design_json) {
@@ -223,13 +243,23 @@ export class QrStore {
             ownerName: r.profiles?.display_name || undefined,
             ownerEmail: r.profiles?.email || undefined,
             ownerAvatarUrl: r.profiles?.avatar_url || undefined,
-            totalScans: 0,
-            uniqueScans: 0,
+            totalScans: scanStats[r.id]?.totalScans ?? 0,
+            uniqueScans: scanStats[r.id]?.uniqueScans ?? 0,
             design,
             createdAt: Math.floor(new Date(r.created_at).getTime() / 1000),
             updatedAt: Math.floor(new Date(r.updated_at).getTime() / 1000),
           };
         });
+
+        if (sortBy === "totalScans") {
+          mapped.sort((a: any, b: any) =>
+            order?.toLowerCase() === "asc"
+              ? a.totalScans - b.totalScans
+              : b.totalScans - a.totalScans
+          );
+        }
+
+        return mapped;
       }
     } catch (err) {
       console.warn("[QrStore.listQrs] Supabase query notice:", err);
@@ -456,6 +486,21 @@ export class QrStore {
           destUrl = draft.content_json.url;
         }
 
+        let totalScans = 0;
+        let uniqueScans = 0;
+
+        const { data: scanRows } = await supabase
+          .from("scan_events_hourly")
+          .select("total_scans, unique_scans")
+          .eq("qr_id", r.id);
+
+        if (scanRows) {
+          for (const s of scanRows) {
+            totalScans += Number(s.total_scans || 0);
+            uniqueScans += Number(s.unique_scans || 0);
+          }
+        }
+
         return {
           id: r.id,
           organizationId: r.organization_id,
@@ -478,8 +523,8 @@ export class QrStore {
           ownerName: r.profiles?.display_name || undefined,
           ownerEmail: r.profiles?.email || undefined,
           ownerAvatarUrl: r.profiles?.avatar_url || undefined,
-          totalScans: 0,
-          uniqueScans: 0,
+          totalScans,
+          uniqueScans,
           design,
           createdAt: Math.floor(new Date(r.created_at).getTime() / 1000),
           updatedAt: Math.floor(new Date(r.updated_at).getTime() / 1000),

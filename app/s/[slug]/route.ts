@@ -146,11 +146,28 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!qr) {
       const { data: page } = await (supabase as any)
         .from("landing_pages")
-        .select("id, slug, status")
+        .select("id, slug, status, organization_id")
         .eq("slug", cleanSlug)
         .maybeSingle();
 
-      if (page && page.status === "PUBLISHED") {
+      if (page && (page.status?.toLowerCase() === "published" || page.status === "PUBLISHED")) {
+        const userAgent = request.headers.get("user-agent") || "";
+        const isMobile = /mobile|iphone|android|ipad/i.test(userAgent);
+        const referrer = request.headers.get("referer") || "direct";
+        try {
+          await Promise.race([
+            (supabase as any).from("landing_page_events").insert({
+              landing_page_id: page.id,
+              organization_id: page.organization_id,
+              event_type: "view",
+              device_type: isMobile ? "mobile" : "desktop",
+              referrer: referrer.slice(0, 255),
+            }),
+            new Promise((resolve) => setTimeout(resolve, 800)),
+          ]);
+        } catch (e) {
+          console.warn("[QR Resolver] Landing page view event notice:", e);
+        }
         return NextResponse.redirect(new URL(`/p/${cleanSlug}`, request.url), 302);
       }
 
@@ -244,27 +261,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       // Guardian lookup errors must never block resolution
     }
 
-    // 6. Handle Special QR Types
-    if (qr.qr_type === "landing_page" || (draft?.content_json as any)?.type === "landing_page") {
-      const pageSlug = (draft?.content_json as any)?.landingPageSlug || destinationUrl || cleanSlug;
-      return NextResponse.redirect(new URL(`/p/${pageSlug}`, request.url), 302);
-    }
-
-    if (!destinationUrl) {
-      return renderStatusPage(
-        404,
-        "Destination Not Configured",
-        "This QR code is active but its destination has not been configured yet.",
-        "#FFA110"
-      );
-    }
-
-    // Normalize protocol
-    if (!/^https?:\/\//i.test(destinationUrl)) {
-      destinationUrl = `https://${destinationUrl}`;
-    }
-
-    // 7. Non-blocking Scan Telemetry (Recorded asynchronously)
+    // 6. Record Scan Telemetry Before Redirection
     const userAgent = request.headers.get("user-agent") || "";
     const country =
       request.headers.get("x-vercel-ip-country") ||
@@ -299,10 +296,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     now.setMinutes(0, 0, 0);
     const hourBucket = now.toISOString();
 
-    // Fire and forget scan event without awaiting
-    void (async () => {
-      try {
-        await (supabase as any).from("scan_events_hourly").insert({
+    try {
+      await Promise.race([
+        (supabase as any).from("scan_events_hourly").insert({
           qr_id: qr.id,
           organization_id: qr.organization_id,
           hour_bucket: hourBucket,
@@ -314,11 +310,33 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           os_name: osName,
           browser_name: browserName,
           referrer: referrer.slice(0, 255),
-        });
-      } catch (err) {
-        // Telemetry failure never interrupts redirection
-      }
-    })();
+          destination_url: destinationUrl || null,
+        }),
+        new Promise((resolve) => setTimeout(resolve, 800)),
+      ]);
+    } catch (err) {
+      console.warn("[QR Resolver] Scan telemetry insert notice:", err);
+    }
+
+    // 7. Handle Special QR Types (e.g. Landing Page)
+    if (qr.qr_type === "landing_page" || (draft?.content_json as any)?.type === "landing_page") {
+      const pageSlug = (draft?.content_json as any)?.landingPageSlug || destinationUrl || cleanSlug;
+      return NextResponse.redirect(new URL(`/p/${pageSlug}?qr_id=${qr.id}`, request.url), 302);
+    }
+
+    if (!destinationUrl) {
+      return renderStatusPage(
+        404,
+        "Destination Not Configured",
+        "This QR code is active but its destination has not been configured yet.",
+        "#FFA110"
+      );
+    }
+
+    // Normalize protocol
+    if (!/^https?:\/\//i.test(destinationUrl)) {
+      destinationUrl = `https://${destinationUrl}`;
+    }
 
     // 8. Redirect with Cache-Control no-store
     return NextResponse.redirect(destinationUrl, {

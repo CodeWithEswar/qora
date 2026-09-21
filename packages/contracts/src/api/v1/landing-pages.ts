@@ -652,14 +652,14 @@ export const LandingPageConnectedQrV1Schema = z.object({
 export type LandingPageConnectedQrV1 = z.infer<typeof LandingPageConnectedQrV1Schema>;
 
 export const LandingPageTelemetryEventSchema = z.object({
-  pageId: z.string().uuid(),
+  pageId: z.string().min(1),
   eventType: z.enum(["view", "action_click", "conversion"]),
-  versionId: z.string().uuid().optional(),
-  qrId: z.string().uuid().optional(),
-  actionId: z.string().optional(),
-  actionType: z.string().optional(),
-  deviceType: z.string().optional(),
-  referrer: z.string().optional(),
+  versionId: z.string().nullish(),
+  qrId: z.string().nullish(),
+  actionId: z.string().nullish(),
+  actionType: z.string().nullish(),
+  deviceType: z.string().nullish(),
+  referrer: z.string().nullish(),
 });
 export type LandingPageTelemetryEvent = z.infer<typeof LandingPageTelemetryEventSchema>;
 

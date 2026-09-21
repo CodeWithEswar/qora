@@ -86,6 +86,12 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    google: [
+      "0g2s_FQn1PwnbyDKVPtBmY_5vj-aMKR4Cb36jGOC7Mk",
+      "googleebd88d1a5083c35b",
+    ],
+  },
 };
 
 import { Toaster } from "@/components/ui/sonner";
@@ -113,6 +119,14 @@ export default function RootLayout({
       className={`${inter.variable} ${cormorant.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
     >
       <head>
+        <meta
+          name="google-site-verification"
+          content="0g2s_FQn1PwnbyDKVPtBmY_5vj-aMKR4Cb36jGOC7Mk"
+        />
+        <meta
+          name="google-site-verification"
+          content="googleebd88d1a5083c35b"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
