@@ -63,6 +63,12 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
 }
 
 export async function middleware(request: NextRequest) {
+  const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.host || "").toLowerCase();
+  if (host.includes("nextqr.vercel.app") || host.includes("nxtqr.link")) {
+    const canonicalUrl = new URL(request.nextUrl.pathname + request.nextUrl.search, "https://nxtqr.vercel.app");
+    return NextResponse.redirect(canonicalUrl, 301);
+  }
+
   const { pathname, searchParams } = request.nextUrl;
 
   // Ignore static assets and Next.js internals

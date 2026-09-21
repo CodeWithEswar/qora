@@ -130,7 +130,7 @@ export async function getQrBrainState(
 
     if (qr && !error) {
       const resolvedQrId = qr.id;
-      const [{ data: destRows }, { data: draftRow }] = await Promise.all([
+      const [{ data: destRows }, { data: draftRow }, { data: latestVersionRow }] = await Promise.all([
         (supabase.from("qr_destinations" as any) as any)
           .select("default_url, fallback_url")
           .eq("qr_id", resolvedQrId)
@@ -138,13 +138,21 @@ export async function getQrBrainState(
           .limit(1),
         supabase
           .from("qr_drafts")
-          .select("routing_json")
+          .select("routing_json, destination_json, content_json")
           .eq("qr_id", resolvedQrId)
+          .maybeSingle(),
+        supabase
+          .from("qr_versions")
+          .select("destination_json, content_json, routing_json")
+          .eq("qr_id", resolvedQrId)
+          .order("version_number", { ascending: false })
+          .limit(1)
           .maybeSingle(),
       ]);
 
       const dest = destRows?.[0] as { default_url?: string; fallback_url?: string } | undefined;
-      const draft = draftRow as { routing_json?: any } | undefined;
+      const draft = draftRow as { routing_json?: any; destination_json?: any; content_json?: any } | undefined;
+      const latestVersion = latestVersionRow as { routing_json?: any; destination_json?: any; content_json?: any } | undefined;
       const publishedRevision = qr.published_revision || 1;
 
       // Fetch relational rules from Supabase qr_rules
@@ -186,8 +194,37 @@ export async function getQrBrainState(
         draftRules = activeDbRules;
       }
 
+      // Extract real user destination with priority:
+      // 1. dest.default_url if not self-host
+      // 2. draft.destination_json.defaultUrl / draft.content_json.url
+      // 3. latestVersion.destination_json.defaultUrl / latestVersion.content_json.url
+      const draftDestUrl =
+        (draft?.destination_json as any)?.defaultUrl ||
+        (draft?.content_json as any)?.url ||
+        (draft?.destination_json as any)?.url;
+
+      const versionDestUrl =
+        (latestVersion?.destination_json as any)?.defaultUrl ||
+        (latestVersion?.content_json as any)?.url ||
+        (latestVersion?.destination_json as any)?.url;
+
+      let defaultUrl = dest?.default_url || "";
+      if (!defaultUrl || defaultUrl.includes("nxtqr.vercel.app") || defaultUrl.includes("nextqr.vercel.app")) {
+        if (draftDestUrl && !draftDestUrl.includes("nxtqr.vercel.app") && !draftDestUrl.includes("nextqr.vercel.app")) {
+          defaultUrl = draftDestUrl;
+        } else if (versionDestUrl && !versionDestUrl.includes("nxtqr.vercel.app") && !versionDestUrl.includes("nextqr.vercel.app")) {
+          defaultUrl = versionDestUrl;
+        } else {
+          defaultUrl = draftDestUrl || versionDestUrl || dest?.default_url || "https://nxtqr.vercel.app";
+        }
+      }
+
+      const fallbackUrl =
+        dest?.fallback_url ||
+        (draft?.destination_json as any)?.fallbackUrl ||
+        (latestVersion?.destination_json as any)?.fallbackUrl;
+
       const destinations: QrBrainDestinationOption[] = [];
-      const defaultUrl = dest?.default_url || "https://nxtqr.vercel.app";
       destinations.push({
         id: `dest_${resolvedQrId.slice(-8)}`,
         url: defaultUrl,
@@ -195,10 +232,10 @@ export async function getQrBrainState(
         isDefault: true,
       });
 
-      if (dest?.fallback_url && dest.fallback_url !== defaultUrl) {
+      if (fallbackUrl && fallbackUrl !== defaultUrl) {
         destinations.push({
           id: `fb_${resolvedQrId.slice(-8)}`,
-          url: dest.fallback_url,
+          url: fallbackUrl,
           label: "Guardian Fallback",
           isDefault: false,
         });
@@ -218,7 +255,7 @@ export async function getQrBrainState(
       const validation = validateRoutingPolicyBeforePublish(
         draftRules,
         defaultUrl,
-        dest?.fallback_url || undefined
+        fallbackUrl || undefined
       );
 
       const draftSerialized = JSON.stringify(
@@ -255,7 +292,7 @@ export async function getQrBrainState(
         draftRules,
         destinations,
         defaultDestinationUrl: defaultUrl,
-        fallbackDestinationUrl: dest?.fallback_url || undefined,
+        fallbackDestinationUrl: fallbackUrl || undefined,
         validation,
         hasUnpublishedChanges,
       };
@@ -421,7 +458,9 @@ export async function saveDraftRules(
   rules: RoutingRule[],
   expectedRevision: number | undefined,
   actorId: string,
-  db?: any
+  db?: any,
+  defaultDestinationUrl?: string,
+  fallbackDestinationUrl?: string
 ): Promise<{ success: boolean; ruleCount: number; updatedAt: string }> {
   const now = Math.floor(Date.now() / 1000);
   const nowIso = new Date().toISOString();
@@ -462,17 +501,52 @@ export async function saveDraftRules(
       const resolvedQrId = qrRow.id;
 
       // Update or insert qr_drafts
-      await supabase.from("qr_drafts").upsert(
-        {
-          qr_id: resolvedQrId,
-          organization_id: organizationId,
-          draft_version: 1,
-          routing_json: sanitizedRules as any,
-          updated_by: actorId,
-          updated_at: nowIso,
-        },
-        { onConflict: "qr_id" }
-      );
+      const draftUpsertPayload: any = {
+        qr_id: resolvedQrId,
+        organization_id: organizationId,
+        draft_version: 1,
+        routing_json: sanitizedRules as any,
+        updated_by: actorId,
+        updated_at: nowIso,
+      };
+
+      if (defaultDestinationUrl && defaultDestinationUrl.trim().length > 0) {
+        draftUpsertPayload.destination_json = {
+          defaultUrl: defaultDestinationUrl.trim(),
+          fallbackUrl: fallbackDestinationUrl ? fallbackDestinationUrl.trim() : null,
+        };
+
+        const { data: existingDraft } = await supabase
+          .from("qr_drafts")
+          .select("content_json")
+          .eq("qr_id", resolvedQrId)
+          .maybeSingle();
+
+        const currentContent = (existingDraft?.content_json as any) || {};
+        draftUpsertPayload.content_json = {
+          ...currentContent,
+          type: currentContent.type || "url",
+          url: defaultDestinationUrl.trim(),
+          isDynamic: true,
+        };
+
+        try {
+          await (supabase.from("qr_destinations" as any) as any).upsert(
+            {
+              id: resolvedQrId,
+              qr_id: resolvedQrId,
+              default_url: defaultDestinationUrl.trim(),
+              fallback_url: fallbackDestinationUrl ? fallbackDestinationUrl.trim() : null,
+              updated_at: nowIso,
+            },
+            { onConflict: "qr_id" }
+          );
+        } catch {
+          // qr_destinations optional sync
+        }
+      }
+
+      await supabase.from("qr_drafts").upsert(draftUpsertPayload, { onConflict: "qr_id" });
 
       // Re-synchronize qr_rules
       await supabase.from("qr_rules").delete().eq("qr_id", resolvedQrId);
@@ -614,6 +688,10 @@ export async function publishRoutingRules(
         url: state.defaultDestinationUrl,
         isDynamic: true,
       },
+      destination_json: {
+        defaultUrl: state.defaultDestinationUrl,
+        fallbackUrl: state.fallbackDestinationUrl || null,
+      },
       routing_json: state.draftRules as any,
       change_summary: `Published QR Brain routing revision (${state.draftRules.length} rules)`,
       created_by: userUuid,
@@ -634,9 +712,34 @@ export async function publishRoutingRules(
       .from("qr_drafts")
       .update({
         routing_json: state.draftRules as any,
+        destination_json: {
+          defaultUrl: state.defaultDestinationUrl,
+          fallbackUrl: state.fallbackDestinationUrl || null,
+        },
+        content_json: {
+          type: "url",
+          url: state.defaultDestinationUrl,
+          isDynamic: true,
+        },
         updated_at: nowIso,
       })
       .eq("qr_id", state.qrId);
+
+    // Upsert into qr_destinations
+    try {
+      await (supabase.from("qr_destinations" as any) as any).upsert(
+        {
+          id: state.qrId,
+          qr_id: state.qrId,
+          default_url: state.defaultDestinationUrl,
+          fallback_url: state.fallbackDestinationUrl || null,
+          updated_at: nowIso,
+        },
+        { onConflict: "qr_id" }
+      );
+    } catch {
+      // qr_destinations optional sync
+    }
 
     // Upsert into qr_resolution_snapshots
     await supabase.from("qr_resolution_snapshots").upsert(

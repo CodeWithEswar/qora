@@ -116,13 +116,18 @@ export async function PUT(request: NextRequest, { params }: Params) {
       },
     }));
 
+    const defaultDestinationUrl = typeof rawBody?.defaultDestinationUrl === "string" ? rawBody.defaultDestinationUrl : undefined;
+    const fallbackDestinationUrl = typeof rawBody?.fallbackDestinationUrl === "string" ? rawBody.fallbackDestinationUrl : undefined;
+
     const result = await saveDraftRules(
       qrId,
       ctx.organizationId,
       mappedRules,
       payload.expectedRevision,
       actorId,
-      d1
+      d1,
+      defaultDestinationUrl,
+      fallbackDestinationUrl
     );
 
     // Emit internal event: qr.rule.changed (draft update)

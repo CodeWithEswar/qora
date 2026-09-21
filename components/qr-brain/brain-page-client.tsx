@@ -168,13 +168,16 @@ export function BrainPageClient({ orgSlug, initialState }: BrainPageClientProps)
   const saveTimeoutRef = React.useRef<any>(null);
 
   const performAutosave = React.useCallback(
-    async (rulesToSave: RoutingRule[]) => {
+    async (rulesToSave: RoutingRule[], targetDefaultUrl?: string) => {
       setSaveStatus("saving");
+      const effectiveDefaultUrl = targetDefaultUrl !== undefined ? targetDefaultUrl : defaultDestinationUrl;
       try {
         const res = await fetch(`/api/v1/qrs/${initialState.qrId}/rules`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            defaultDestinationUrl: effectiveDefaultUrl,
+            fallbackDestinationUrl: initialState.fallbackDestinationUrl,
             rules: rulesToSave.map((r) => ({
               id: r.id,
               name: r.name,
@@ -211,7 +214,7 @@ export function BrainPageClient({ orgSlug, initialState }: BrainPageClientProps)
         toast.error(`Autosave failed: ${err.message}. Draft preserved in memory.`);
       }
     },
-    [initialState.qrId, publishedRevision]
+    [initialState.qrId, initialState.fallbackDestinationUrl, defaultDestinationUrl, publishedRevision]
   );
 
   const handleRulesChange = (newRules: RoutingRule[]) => {
@@ -537,6 +540,12 @@ export function BrainPageClient({ orgSlug, initialState }: BrainPageClientProps)
               onChangeDefaultUrl={(url) => {
                 setDefaultDestinationUrl(url);
                 setSaveStatus("unsaved");
+                if (saveTimeoutRef.current) {
+                  clearTimeout(saveTimeoutRef.current);
+                }
+                saveTimeoutRef.current = setTimeout(() => {
+                  performAutosave(rules, url);
+                }, 1000);
               }}
               onOpenSimulator={() => setSimulatorOpen(true)}
             />
@@ -583,6 +592,12 @@ export function BrainPageClient({ orgSlug, initialState }: BrainPageClientProps)
             onUpdateDefaultUrl={(url) => {
               setDefaultDestinationUrl(url);
               setSaveStatus("unsaved");
+              if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+              }
+              saveTimeoutRef.current = setTimeout(() => {
+                performAutosave(rules, url);
+              }, 1000);
             }}
             onOpenSimulator={() => setSimulatorOpen(true)}
           />
