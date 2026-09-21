@@ -108,13 +108,17 @@ export const siteConfig = {
  * Governs dynamic QR short domain and resolver edge endpoints.
  * Source of truth: https://nxtqr.vercel.app with the /s/{slug} resolver contract.
  */
+const rawDefaultHost =
+  (typeof process !== "undefined" && (process.env?.NEXT_PUBLIC_RESOLVER_HOST || process.env?.RESOLVER_HOST || process.env?.NEXT_PUBLIC_SITE_DOMAIN)) ||
+  "nxtqr.vercel.app";
+
+const rawShortUrlBase =
+  (typeof process !== "undefined" && (process.env?.NEXT_PUBLIC_SHORT_URL_BASE || process.env?.SHORT_URL_BASE || process.env?.NEXT_PUBLIC_APP_URL)) ||
+  "https://nxtqr.vercel.app";
+
 export const RESOLVER_CONFIG = {
-  defaultHost:
-    (typeof process !== "undefined" && (process.env?.NEXT_PUBLIC_RESOLVER_HOST || process.env?.RESOLVER_HOST || process.env?.NEXT_PUBLIC_SITE_DOMAIN)) ||
-    "nxtqr.vercel.app",
-  shortUrlBase:
-    (typeof process !== "undefined" && (process.env?.NEXT_PUBLIC_SHORT_URL_BASE || process.env?.SHORT_URL_BASE || process.env?.NEXT_PUBLIC_APP_URL)) ||
-    "https://nxtqr.vercel.app",
+  defaultHost: rawDefaultHost.replace("nextqr.vercel.app", "nxtqr.vercel.app"),
+  shortUrlBase: rawShortUrlBase.replace("nextqr.vercel.app", "nxtqr.vercel.app"),
   resolverPath: "/s",
 };
 
