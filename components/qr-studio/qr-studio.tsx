@@ -27,6 +27,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Eye, Save, Download, Send } from "lucide-react";
 import { BRAND } from "@/lib/brand";
+import { buildQrResolverUrl } from "@nxtqr/config";
 
 interface QrStudioProps {
   orgSlug: string;
@@ -268,7 +269,7 @@ export function QrStudio({ orgSlug, qrId }: QrStudioProps) {
       content.type === "app" ||
       content.type === "file";
     if (isDynamic && isDynamicCapable && qrSlug) {
-      return `https://${BRAND.shortDomain || "nxtqr.vercel.app"}/s/${qrSlug}`;
+      return buildQrResolverUrl(qrSlug);
     }
     return encodeQrContent(content);
   }, [isDynamic, qrSlug, content]);

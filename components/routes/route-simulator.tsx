@@ -35,6 +35,7 @@ import {
   RoutingSimulationResult,
 } from "@nxtqr/contracts";
 import { BRAND } from "@/lib/brand";
+import { RESOLVER_CONFIG } from "@nxtqr/config";
 
 interface RouteSimulatorProps {
   initialSnapshot?: QrResolverSnapshotV1;
@@ -79,7 +80,7 @@ export function RouteSimulator({
   const simulationResult: RoutingSimulationResult = React.useMemo(() => {
     const context: Partial<ResolverContext> = {
       now: Date.now(),
-      host: BRAND.shortDomain || "nxtqr.vercel.app",
+      host: RESOLVER_CONFIG.defaultHost,
       slug: "test-route",
       device,
       os,

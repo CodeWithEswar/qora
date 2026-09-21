@@ -117,8 +117,12 @@ const rawShortUrlBase =
   "https://nxtqr.vercel.app";
 
 export const RESOLVER_CONFIG = {
-  defaultHost: rawDefaultHost.replace("nextqr.vercel.app", "nxtqr.vercel.app"),
-  shortUrlBase: rawShortUrlBase.replace("nextqr.vercel.app", "nxtqr.vercel.app"),
+  defaultHost: rawDefaultHost
+    .replace(/nextqr/gi, "nxtqr")
+    .replace(/nxtqr\.link/gi, "nxtqr.vercel.app"),
+  shortUrlBase: rawShortUrlBase
+    .replace(/nextqr/gi, "nxtqr")
+    .replace(/nxtqr\.link/gi, "https://nxtqr.vercel.app"),
   resolverPath: "/s",
 };
 

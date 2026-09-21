@@ -10,9 +10,12 @@ export const BRAND = {
   corePositioning: "Create once. Change anytime. Route intelligently. Measure everything.",
   description: "Production-grade, multi-tenant QR intelligence platform. Create dynamic QR codes, route scans intelligently by device, country, or time, and monitor destination health in real time.",
   
-  // Domains (Configured via env with production fallbacks)
-  domain: process.env.NEXT_PUBLIC_SITE_DOMAIN || "nxtqr.vercel.app",
-  shortDomain: process.env.NEXT_PUBLIC_SHORT_DOMAIN || process.env.NEXT_PUBLIC_SITE_DOMAIN || "nxtqr.vercel.app",
+  domain: (process.env.NEXT_PUBLIC_SITE_DOMAIN || "nxtqr.vercel.app")
+    .replace(/nextqr/gi, "nxtqr")
+    .replace(/nxtqr\.link/gi, "nxtqr.vercel.app"),
+  shortDomain: (process.env.NEXT_PUBLIC_SHORT_DOMAIN || process.env.NEXT_PUBLIC_SITE_DOMAIN || "nxtqr.vercel.app")
+    .replace(/nextqr/gi, "nxtqr")
+    .replace(/nxtqr\.link/gi, "nxtqr.vercel.app"),
   docsUrl: "/docs",
   helpUrl: "/docs",
   

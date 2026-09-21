@@ -9,7 +9,9 @@ const rawSiteUrl = (
   (process.env.NEXT_PUBLIC_SITE_DOMAIN
     ? `https://${process.env.NEXT_PUBLIC_SITE_DOMAIN}`
     : "https://nxtqr.vercel.app")
-).replace("nextqr.vercel.app", "nxtqr.vercel.app");
+)
+  .replace(/nextqr/gi, "nxtqr")
+  .replace(/nxtqr\.link/gi, "nxtqr.vercel.app");
 
 export const SITE = {
   name: BRAND.name,

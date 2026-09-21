@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BRAND } from "@/lib/brand";
+import { buildQrResolverUrl, RESOLVER_CONFIG } from "@nxtqr/config";
 import { ContentMatrix } from "./content-matrix";
 import { QrTypeIcon, cleanDomainFromUrl } from "@/components/icons/qr-type-icon";
 
@@ -58,6 +59,8 @@ export function ContentPanel({
   const [isMatrixOpen, setIsMatrixOpen] = React.useState(false);
   const [showWifiPassword, setShowWifiPassword] = React.useState(false);
   const [isUploadingFile, setIsUploadingFile] = React.useState(false);
+
+  const displayResolverLink = `${RESOLVER_CONFIG.defaultHost}/s/${shortSlug || "preview"}`;
 
   // Find active type definition in canonical registry
   const activeDef: QrTypeDefinition =
@@ -229,7 +232,7 @@ export function ContentPanel({
                     <span className="text-[9px] font-mono text-muted-foreground uppercase">Edge Compiled</span>
                   </div>
                   <div className="px-2.5 py-1 rounded bg-muted/40 border border-border/60 font-mono text-primary font-semibold text-[11px] break-all select-all">
-                    {BRAND.shortDomain}/{shortSlug || "preview"}
+                    {displayResolverLink}
                   </div>
                   <p className="text-[10px] text-muted-foreground leading-normal">
                     Physical scans resolve to this permanent address, redirecting to your destination.
@@ -289,7 +292,7 @@ export function ContentPanel({
                     <span className="text-[9px] font-mono text-muted-foreground uppercase">Edge Compiled</span>
                   </div>
                   <div className="px-2.5 py-1 rounded bg-muted/40 border border-border/60 font-mono text-primary font-semibold text-[11px] break-all select-all">
-                    {BRAND.shortDomain}/{shortSlug || "preview"}
+                    {displayResolverLink}
                   </div>
                 </div>
               )}
@@ -817,6 +820,19 @@ export function ContentPanel({
                   className="text-xs font-mono"
                 />
               </div>
+
+              {/* Resolver Preview if dynamic */}
+              {isDynamic && (
+                <div className="p-2.5 rounded-md border border-border bg-surface text-[11px] space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-foreground text-[11px]">Stable Resolver Link</span>
+                    <span className="text-[9px] font-mono text-muted-foreground uppercase">Edge Compiled</span>
+                  </div>
+                  <div className="px-2.5 py-1 rounded bg-muted/40 border border-border/60 font-mono text-primary font-semibold text-[11px] break-all select-all">
+                    {displayResolverLink}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -856,6 +872,19 @@ export function ContentPanel({
                     className="hidden"
                   />
                 </label>
+              )}
+
+              {/* Resolver Preview if dynamic */}
+              {isDynamic && (
+                <div className="p-2.5 rounded-md border border-border bg-surface text-[11px] space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-foreground text-[11px]">Stable Resolver Link</span>
+                    <span className="text-[9px] font-mono text-muted-foreground uppercase">Edge Compiled</span>
+                  </div>
+                  <div className="px-2.5 py-1 rounded bg-muted/40 border border-border/60 font-mono text-primary font-semibold text-[11px] break-all select-all">
+                    {displayResolverLink}
+                  </div>
+                </div>
               )}
             </div>
           )}
