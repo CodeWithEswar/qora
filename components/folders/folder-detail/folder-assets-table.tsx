@@ -159,7 +159,7 @@ export function FolderAssetsTable({
                 </TableCell>
 
                 {/* Updated At */}
-                <TableCell className="py-3 text-xs font-mono text-muted-foreground hidden xl:table-cell">
+                <TableCell className="py-3 text-xs font-mono text-muted-foreground hidden xl:table-cell" suppressHydrationWarning>
                   {formatRelativeTime(qr.updatedAt)}
                 </TableCell>
 

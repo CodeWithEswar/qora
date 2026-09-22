@@ -25,6 +25,8 @@ interface DomainRegistryProps {
   onDisconnectDomain: (domain: CustomDomainSummaryV1) => void;
 }
 
+const emptySubscribe = () => () => {};
+
 export function DomainRegistry({
   domains,
   selectedDomainId,
@@ -34,6 +36,12 @@ export function DomainRegistry({
   onArchiveDomain,
   onDisconnectDomain,
 }: DomainRegistryProps) {
+  const isClient = React.useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+
   const handleCopyHostname = (hostname: string, e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(hostname);
@@ -190,8 +198,11 @@ export function DomainRegistry({
                 </div>
 
                 {/* Relative timestamp */}
-                <span className="text-[11px] font-mono text-muted-foreground hidden lg:inline">
-                  {formatRelativeTime(domain.createdAt)}
+                <span
+                  className="text-[11px] font-mono text-muted-foreground hidden lg:inline"
+                  suppressHydrationWarning
+                >
+                  {isClient ? formatRelativeTime(domain.createdAt) : ""}
                 </span>
 
                 {/* Actions Dropdown */}

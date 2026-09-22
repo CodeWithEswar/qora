@@ -133,7 +133,7 @@ test("Contract: Validates BrandGovernance defaults and schema", () => {
 test("Contract: Validates CreateBrandKitRequestSchema and UpdateBrandKitRequestSchema", () => {
   const createPayload = {
     name: "Volt Mobility",
-    description: "Visual identity system for electric fleet QRs",
+    description: "Visual identity system for high-contrast signage QRs",
     primaryColor: "#00E599",
     secondaryColor: "#0B0E14",
     isDefault: false,
@@ -155,8 +155,8 @@ test("Contract: Validates CreateBrandKitRequestSchema and UpdateBrandKitRequestS
     },
     qrPresets: [
       {
-        id: "qr_fleet",
-        name: "Fleet Vehicle Decal",
+        id: "qr_outdoor",
+        name: "High-Contrast Outdoor Tag",
         description: "High-contrast outdoor scan profile",
         isDefault: false,
         design: {

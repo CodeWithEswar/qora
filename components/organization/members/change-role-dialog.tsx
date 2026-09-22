@@ -18,14 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SYSTEM_ROLE_METADATA } from "@nxtqr/permissions";
-import { SystemRoleName } from "@nxtqr/contracts";
+import { AccessDiff } from "./access-diff";
+import { AlertCircle } from "lucide-react";
 
 interface RoleOption {
   id: string;
+  code?: string;
   name: string;
-  isSystem: boolean;
-  description?: string;
+  isSystem?: boolean;
+  description?: string | null;
 }
 
 interface ChangeRoleDialogProps {
@@ -33,10 +34,14 @@ interface ChangeRoleDialogProps {
   onClose: () => void;
   member: {
     id: string;
-    name: string;
+    displayName: string;
     email: string;
     roleId: string;
+    roleCode: string;
     roleName: string;
+    roleDescription?: string | null;
+    teams: Array<{ id: string; name: string }>;
+    isCurrentUser: boolean;
   } | null;
   roles: RoleOption[];
   onConfirm: (memberId: string, newRoleId: string) => Promise<void>;
@@ -62,10 +67,20 @@ export function ChangeRoleDialog({
 
   if (!member) return null;
 
-  const targetRole = roles.find((r) => r.id === selectedRoleId);
-  const targetDesc =
-    targetRole?.description ||
-    (SYSTEM_ROLE_METADATA[targetRole?.name as SystemRoleName]?.description ?? "");
+  const currentRole = {
+    name: member.roleName,
+    code: member.roleCode || "MEMBER",
+    description: member.roleDescription,
+  };
+
+  const targetRoleObj = roles.find((r) => r.id === selectedRoleId) || roles[0];
+  const proposedRole = {
+    name: targetRoleObj?.name || "Viewer",
+    code: targetRoleObj?.code || targetRoleObj?.name.toUpperCase() || "VIEWER",
+    description: targetRoleObj?.description,
+  };
+
+  const isOwnerDemotion = currentRole.code.toUpperCase() === "OWNER" && proposedRole.code.toUpperCase() !== "OWNER";
 
   const handleSave = async () => {
     if (!selectedRoleId || selectedRoleId === member.roleId) {
@@ -86,74 +101,74 @@ export function ChangeRoleDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg bg-background text-foreground border border-border/80 p-6">
         <DialogHeader>
-          <DialogTitle>Change workspace role</DialogTitle>
-          <DialogDescription>
-            Update access level and publishing authority for this member.
+          <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground uppercase tracking-wider">
+            <span>MEMBER ACCESS</span>
+            <span>/</span>
+            <span className="text-foreground font-semibold">ROLE MODIFICATION</span>
+          </div>
+          <DialogTitle className="text-base font-semibold text-foreground pt-1">
+            Modify Operational Role
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Reassign the operational authorization tier for {member.displayName} ({member.email}).
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="p-3 rounded-lg bg-surface-hover/60 border border-border flex items-center justify-between text-xs">
-            <div>
-              <p className="font-semibold text-foreground">{member.name}</p>
-              <p className="text-[11px] text-muted-foreground">{member.email}</p>
+          {error && (
+            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
             </div>
-            <div className="text-right">
-              <span className="text-[10px] font-mono uppercase text-muted-foreground block">
-                Current Role
-              </span>
-              <span className="font-medium text-foreground">{member.roleName}</span>
-            </div>
-          </div>
+          )}
 
+          {/* Role Selector */}
           <div className="space-y-1.5">
-            <Label htmlFor="role-select">New Role Assignment</Label>
+            <Label htmlFor="role-select" className="text-xs font-medium">
+              Select New Workspace Role
+            </Label>
             <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
-              <SelectTrigger id="role-select">
-                <SelectValue placeholder="Select role" />
+              <SelectTrigger id="role-select" className="h-9 text-xs bg-surface">
+                <SelectValue placeholder="Select target role" />
               </SelectTrigger>
               <SelectContent>
                 {roles.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>
-                    <span className="font-medium">{r.name}</span>
-                    <span className="text-[10px] text-muted-foreground ml-2">
-                      ({r.isSystem ? "System" : "Custom"})
-                    </span>
+                  <SelectItem key={r.id} value={r.id} className="text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{r.name}</span>
+                      {r.isSystem && (
+                        <span className="text-[10px] font-mono text-muted-foreground">
+                          (System Role)
+                        </span>
+                      )}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {targetDesc && (
-            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground block mb-0.5">
-                Authority description:
-              </span>
-              {targetDesc}
-            </div>
-          )}
-
-          {error && (
-            <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs">
-              {error}
-            </div>
-          )}
+          {/* Signature Interaction #3: Access Diff */}
+          <AccessDiff
+            currentRole={currentRole}
+            proposedRole={proposedRole}
+            isLastOwnerWarning={isOwnerDemotion}
+          />
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" size="sm" onClick={onClose} disabled={isPending}>
+        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60">
+          <Button variant="ghost" size="sm" onClick={onClose} className="text-xs h-8">
             Cancel
           </Button>
           <Button
             size="sm"
-            onClick={handleSave}
             disabled={isPending || selectedRoleId === member.roleId}
-            className="bg-primary hover:bg-primary/90 text-white"
+            onClick={handleSave}
+            className="text-xs h-8 bg-primary hover:bg-primary/90 text-white"
           >
-            {isPending ? "Updating..." : "Update role"}
+            {isPending ? "Updating Access..." : "Confirm Role Change"}
           </Button>
         </DialogFooter>
       </DialogContent>

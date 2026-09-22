@@ -19,4 +19,5 @@ export * from "./events";
 export * from "./queues";
 export * from "./webhooks/v1";
 export * from "./routing";
-
+export * from "./workspace";
+export * from "./roles";

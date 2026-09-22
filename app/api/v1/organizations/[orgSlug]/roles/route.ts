@@ -1,83 +1,57 @@
 import { NextRequest } from "next/server";
 import { authorizeApiRequest, apiSuccess, apiCreated, handleApiError } from "@/lib/api";
-import { requirePermission, PERMISSIONS } from "@nxtqr/permissions";
-import { listOrganizationRoles, createCustomRoleInD1 } from "@nxtqr/db";
-import {
-  getOrCreateOrgData,
-  createRoleInStore,
-} from "@/lib/domains/organization-store";
-import { PermissionCode } from "@nxtqr/contracts";
-import { z } from "zod";
+import { SupabaseRolesRepository } from "@/lib/supabase/repositories/roles-control-plane";
+import { CreateCustomRoleDtoSchema } from "@nxtqr/contracts";
 
-const CreateRoleSchema = z.object({
-  name: z.string().min(1).max(100),
-  description: z.string().optional(),
-  permissions: z.array(z.string()).optional().default([]),
-});
+interface Params {
+  params: Promise<{ orgSlug: string }>;
+}
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
-) {
+/**
+ * GET /api/v1/organizations/:orgSlug/roles
+ * Retrieves the complete Access Architecture & RBAC Control Plane overview.
+ */
+export async function GET(request: NextRequest, { params }: Params) {
   let ctx;
   try {
     const { orgSlug } = await params;
     ctx = await authorizeApiRequest(request, {
-      permission: PERMISSIONS.ROLES_READ,
+      permission: "organization.read",
     });
 
-    const d1 = ctx.db;
-    if (!d1) {
-      const stored = getOrCreateOrgData(orgSlug);
-      return apiSuccess({ roles: stored.roles }, ctx.requestId);
-    }
+    const overview = await SupabaseRolesRepository.getRolesOverview(
+      orgSlug,
+      ctx.principal.actorId
+    );
 
-    const roles = await listOrganizationRoles(d1, ctx.organizationId);
-    return apiSuccess({ roles }, ctx.requestId);
+    return apiSuccess(overview, ctx.requestId);
   } catch (err) {
     return handleApiError(err, ctx?.requestId || "req_unknown");
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
-) {
+/**
+ * POST /api/v1/organizations/:orgSlug/roles
+ * Creates a new custom role within the organization.
+ */
+export async function POST(request: NextRequest, { params }: Params) {
   let ctx;
   try {
     const { orgSlug } = await params;
     ctx = await authorizeApiRequest(request, {
-      permission: PERMISSIONS.ROLES_CREATE,
+      permission: "member.update_role",
     });
 
-    requirePermission(
-      { role: ctx.principal.role, permissions: [] },
-      PERMISSIONS.ROLES_CREATE
+    const body = await request.json();
+    const validated = CreateCustomRoleDtoSchema.parse(body);
+
+    const created = await SupabaseRolesRepository.createCustomRole(
+      ctx.organizationId,
+      validated,
+      ctx.principal.actorId
     );
 
-    const body = await request.json();
-    const data = CreateRoleSchema.parse(body);
-
-    const d1 = ctx.db;
-    let role: any;
-    if (d1) {
-      role = await createCustomRoleInD1(
-        d1,
-        ctx.organizationId,
-        data.name,
-        data.description,
-        data.permissions as PermissionCode[]
-      );
-    } else {
-      role = createRoleInStore(
-        orgSlug,
-        data.name,
-        data.description,
-        data.permissions as PermissionCode[]
-      );
-    }
-
-    return apiCreated({ success: true, role }, ctx.requestId);
+    return apiCreated({ role: created }, ctx.requestId);
   } catch (err) {
     return handleApiError(err, ctx?.requestId || "req_unknown");
   }

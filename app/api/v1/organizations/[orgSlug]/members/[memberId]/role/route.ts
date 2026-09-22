@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { authorizeApiRequest, apiSuccess, handleApiError } from "@/lib/api";
 import { requirePermission, PERMISSIONS } from "@nxtqr/permissions";
-import { changeMemberRoleInD1 } from "@nxtqr/db";
-import { changeMemberRoleInStore } from "@/lib/domains/organization-store";
+import { SupabaseMembersRepository } from "@/lib/supabase/repositories/members";
+import { SupabaseOrgRepository } from "@/lib/supabase/repositories/organizations";
+import { NotFoundError } from "@nxtqr/contracts";
 import { z } from "zod";
 
 const ChangeRoleSchema = z.object({
@@ -28,23 +29,20 @@ export async function PUT(
     const body = await request.json();
     const data = ChangeRoleSchema.parse(body);
 
-    const d1 = ctx.db;
-    let result = { previousRole: "", newRole: "" };
-    if (d1) {
-      result = await changeMemberRoleInD1(
-        d1,
-        ctx.organizationId,
-        memberId,
-        data.roleId,
-        ctx.principal.actorId
-      );
-    } else {
-      result = changeMemberRoleInStore(orgSlug, memberId, data.roleId);
+    const org = await SupabaseOrgRepository.getBySlugOrId(orgSlug);
+    if (!org) {
+      throw new NotFoundError(`Organization '${orgSlug}' not found.`);
     }
+
+    const result = await SupabaseMembersRepository.changeMemberRole(
+      org.id,
+      memberId,
+      data.roleId,
+      ctx.principal.actorId
+    );
 
     return apiSuccess(
       {
-        success: true,
         memberId,
         ...result,
       },

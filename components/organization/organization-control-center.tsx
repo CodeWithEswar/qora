@@ -72,16 +72,44 @@ export function OrganizationControlCenter({
 
   const orgSlug = overview.organization.slug;
 
+  const adminMembers: MemberDetailItem[] = React.useMemo(() => {
+    return members.map((m) => ({
+      id: m.id,
+      userId: m.userId,
+      publicRef: `MBR-${m.id.substring(0, 4).toUpperCase()}`,
+      displayName: m.name,
+      email: m.email,
+      avatarUrl: m.avatarUrl,
+      roleId: m.roleId,
+      roleCode: m.roleName.toUpperCase(),
+      roleName: m.roleName,
+      capabilities: [],
+      isSystemRole: m.isSystemRole,
+      status: m.status,
+      joinedAt: new Date(m.joinedAt).toISOString(),
+      lastActiveAt: m.lastActiveAt ? new Date(m.lastActiveAt).toISOString() : null,
+      teams: m.teams,
+      security: {
+        isEmailVerified: true,
+        isGoogleConnected: false,
+        isMobileVerified: false,
+      },
+      isCurrentUser: false,
+    }));
+  }, [members]);
+
   // 1. Invite Member Mutation
   const handleInvite = async (data: {
-    emails: string[];
+    email?: string;
+    emails?: string[];
     roleId: string;
     teamIds: string[];
   }) => {
+    const emails = data.emails || (data.email ? [data.email] : []);
     const res = await fetch(`/api/v1/organizations/${orgSlug}/invitations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ emails, roleId: data.roleId, teamIds: data.teamIds }),
     });
 
     const body = await res.json();
@@ -90,7 +118,7 @@ export function OrganizationControlCenter({
     }
 
     toast.success("Invitation created", {
-      description: `Invitation generated for ${data.emails.join(", ")}.`,
+      description: `Invitation generated for ${emails.join(", ")}.`,
     });
 
     // Refresh data
@@ -403,13 +431,16 @@ export function OrganizationControlCenter({
         {activeTab === "overview" && (
           <div className="space-y-6">
             <MembersTable
-              members={members}
+              organizationName={overview.organization.name}
+              members={adminMembers}
               roles={roles}
               teams={teams}
               onSelectMember={setDetailMember}
               onChangeRole={setChangingRoleMember}
               onManageTeams={setManagingTeamsMember}
-              onRemoveMember={setRemovingMember}
+              onSuspendMember={(m) => handleRemoveMember(m.id)}
+              onRestoreMember={(m) => {}}
+              onRemoveMember={(m) => setRemovingMember(m)}
               onInviteClick={() => setIsInviteOpen(true)}
               canManageMembers={canManageMembers}
             />
@@ -418,13 +449,16 @@ export function OrganizationControlCenter({
 
         {activeTab === "members" && (
           <MembersTable
-            members={members}
+            organizationName={overview.organization.name}
+            members={adminMembers}
             roles={roles}
             teams={teams}
             onSelectMember={setDetailMember}
             onChangeRole={setChangingRoleMember}
             onManageTeams={setManagingTeamsMember}
-            onRemoveMember={setRemovingMember}
+            onSuspendMember={(m) => handleRemoveMember(m.id)}
+            onRestoreMember={(m) => {}}
+            onRemoveMember={(m) => setRemovingMember(m)}
             onInviteClick={() => setIsInviteOpen(true)}
             canManageMembers={canManageMembers}
           />
@@ -466,6 +500,7 @@ export function OrganizationControlCenter({
       {/* 6. Contextual Sheets and Dialogs */}
       <MemberDetailSheet
         member={detailMember}
+        organizationName={overview.organization.name}
         isOpen={Boolean(detailMember)}
         onClose={() => setDetailMember(null)}
         onChangeRoleClick={(m) => {
@@ -476,6 +511,11 @@ export function OrganizationControlCenter({
           setDetailMember(null);
           setManagingTeamsMember(m);
         }}
+        onSuspendClick={(m) => {
+          setDetailMember(null);
+          setRemovingMember(m);
+        }}
+        onRestoreClick={(m) => {}}
         onRemoveClick={(m) => {
           setDetailMember(null);
           setRemovingMember(m);
@@ -488,13 +528,7 @@ export function OrganizationControlCenter({
         onClose={() => setIsInviteOpen(false)}
         roles={roles}
         teams={teams}
-        seatLimit={overview.metrics.seatLimit}
-        seatsAssigned={overview.metrics.seatsAssigned}
         onInvite={handleInvite}
-        onUpgradeClick={() => {
-          setIsInviteOpen(false);
-          router.push(`/${orgSlug}/billing`);
-        }}
       />
 
       <ChangeRoleDialog

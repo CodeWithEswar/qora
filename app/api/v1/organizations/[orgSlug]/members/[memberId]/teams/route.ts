@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { authorizeApiRequest, apiSuccess, handleApiError } from "@/lib/api";
 import { requirePermission, PERMISSIONS } from "@nxtqr/permissions";
-import { addTeamMembersInD1 } from "@nxtqr/db";
-import { updateMemberTeamsInStore } from "@/lib/domains/organization-store";
+import { SupabaseMembersRepository } from "@/lib/supabase/repositories/members";
+import { SupabaseOrgRepository } from "@/lib/supabase/repositories/organizations";
+import { NotFoundError } from "@nxtqr/contracts";
 import { z } from "zod";
 
 const ManageMemberTeamsSchema = z.object({
@@ -28,26 +29,17 @@ export async function PUT(
     const body = await request.json();
     const data = ManageMemberTeamsSchema.parse(body);
 
-    const d1 = ctx.db;
-    if (d1) {
-      // Clear member's current teams
-      await d1
-        .prepare(`
-          DELETE FROM team_members 
-          WHERE member_id = ? AND team_id IN (
-            SELECT id FROM teams WHERE organization_id = ?
-          )
-        `)
-        .bind(memberId, ctx.organizationId)
-        .run();
-
-      // Assign to each selected team
-      for (const teamId of data.teamIds) {
-        await addTeamMembersInD1(d1, ctx.organizationId, teamId, [memberId]);
-      }
-    } else {
-      updateMemberTeamsInStore(orgSlug, memberId, data.teamIds);
+    const org = await SupabaseOrgRepository.getBySlugOrId(orgSlug);
+    if (!org) {
+      throw new NotFoundError(`Organization '${orgSlug}' not found.`);
     }
+
+    await SupabaseMembersRepository.updateMemberTeams(
+      org.id,
+      memberId,
+      data.teamIds,
+      ctx.principal.actorId
+    );
 
     return apiSuccess(
       {

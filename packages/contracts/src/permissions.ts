@@ -21,6 +21,19 @@ export type CanonicalPermissionCode =
   | "teams.update"
   | "teams.delete"
 
+  // Approvals & Governance
+  | "approvals.read"
+  | "approvals.decide"
+  | "approvals.request"
+  | "approvals.cancel"
+
+  // Comments & Collaboration
+  | "comments.read"
+  | "comments.create"
+  | "comments.edit"
+  | "comments.delete"
+  | "comments.resolve"
+
   // Roles & Governance
   | "roles.read"
   | "roles.create"
@@ -93,6 +106,10 @@ export type CanonicalPermissionCode =
   // Forensic Audit
   | "audit.read"
 
+  // Operational Activity Intelligence
+  | "activity.read"
+  | "activity.export"
+
   // Custom Domains
   | "domains.read"
   | "domains.manage";
@@ -120,6 +137,15 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleName, PermissionCode[]> =
     "teams.create",
     "teams.update",
     "teams.delete",
+    "approvals.read",
+    "approvals.decide",
+    "approvals.request",
+    "approvals.cancel",
+    "comments.read",
+    "comments.create",
+    "comments.edit",
+    "comments.delete",
+    "comments.resolve",
     "roles.read",
     "roles.create",
     "roles.update",
@@ -166,6 +192,8 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleName, PermissionCode[]> =
     "reports.create",
     "reports.share",
     "audit.read",
+    "activity.read",
+    "activity.export",
     "domains.read",
     "domains.manage",
   ],
@@ -181,6 +209,15 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleName, PermissionCode[]> =
     "teams.create",
     "teams.update",
     "teams.delete",
+    "approvals.read",
+    "approvals.decide",
+    "approvals.request",
+    "approvals.cancel",
+    "comments.read",
+    "comments.create",
+    "comments.edit",
+    "comments.delete",
+    "comments.resolve",
     "roles.read",
     "roles.assign",
     "qr.read",
@@ -223,6 +260,8 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleName, PermissionCode[]> =
     "reports.create",
     "reports.share",
     "audit.read",
+    "activity.read",
+    "activity.export",
     "domains.read",
     "domains.manage",
   ],
@@ -230,6 +269,13 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleName, PermissionCode[]> =
     "organization.read",
     "members.read",
     "teams.read",
+    "approvals.read",
+    "approvals.decide",
+    "approvals.request",
+    "comments.read",
+    "comments.create",
+    "comments.edit",
+    "comments.resolve",
     "qr.read",
     "qr.create",
     "qr.update",
@@ -258,9 +304,19 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleName, PermissionCode[]> =
     "reports.read",
     "reports.create",
     "reports.share",
+    "activity.read",
+    "activity.export",
+    "domains.read",
   ],
   Editor: [
     "organization.read",
+    "members.read",
+    "teams.read",
+    "approvals.read",
+    "approvals.request",
+    "comments.read",
+    "comments.create",
+    "comments.edit",
     "qr.read",
     "qr.create",
     "qr.update",
@@ -269,6 +325,8 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleName, PermissionCode[]> =
     "route.read",
     "route.update",
     "campaigns.read",
+    "campaigns.create",
+    "campaigns.update",
     "folders.read",
     "folders.create",
     "folders.update",
@@ -278,29 +336,49 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleName, PermissionCode[]> =
     "brand.read",
     "analytics.read",
     "reports.read",
+    "reports.create",
+    "activity.read",
+    "domains.read",
   ],
   Analyst: [
     "organization.read",
+    "members.read",
+    "teams.read",
+    "approvals.read",
+    "comments.read",
     "qr.read",
     "routing.read",
     "route.read",
     "campaigns.read",
     "folders.read",
     "landing_pages.read",
+    "brand.read",
     "analytics.read",
     "analytics.export",
     "reports.read",
     "reports.create",
+    "reports.share",
+    "activity.read",
+    "activity.export",
+    "domains.read",
   ],
   Viewer: [
     "organization.read",
+    "members.read",
+    "teams.read",
+    "approvals.read",
+    "comments.read",
     "qr.read",
     "routing.read",
     "route.read",
     "campaigns.read",
     "folders.read",
     "landing_pages.read",
+    "brand.read",
     "analytics.read",
+    "reports.read",
+    "activity.read",
+    "domains.read",
   ],
 };
 

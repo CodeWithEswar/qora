@@ -153,8 +153,8 @@ export function ResourceComments({
                     <span className="text-xs font-semibold text-foreground">
                       {comment.authorName}
                     </span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {new Date(comment.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    <span suppressHydrationWarning className="text-[10px] text-muted-foreground">
+                      {new Date(comment.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
 
@@ -195,8 +195,8 @@ export function ResourceComments({
                           <span className="text-[11px] font-semibold text-foreground">
                             {reply.authorName}
                           </span>
-                          <span className="text-[9px] text-muted-foreground">
-                            {new Date(reply.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          <span suppressHydrationWarning className="text-[9px] text-muted-foreground">
+                            {new Date(reply.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">{reply.content}</p>

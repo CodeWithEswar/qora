@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Download, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ReportJobRecord } from "@/lib/supabase/repositories/analytics";
+import type { ReportJobRecord } from "@/lib/supabase/repositories/analytics";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 

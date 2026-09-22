@@ -121,7 +121,7 @@ export function FolderListView({
                 </TableCell>
 
                 {/* Updated At */}
-                <TableCell className="py-3 text-xs text-muted-foreground font-mono hidden lg:table-cell">
+                <TableCell className="py-3 text-xs text-muted-foreground font-mono hidden lg:table-cell" suppressHydrationWarning>
                   {formatRelativeTime(folder.updatedAt)}
                 </TableCell>
 

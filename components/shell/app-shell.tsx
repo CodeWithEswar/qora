@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { CommandPalette } from "@/components/shell/command-palette";
-import { NytraPixelSpectrum } from "@/components/shared/nytra-pixel-spectrum";
 import { PageTransition } from "@/components/motion/page-transition";
 import { cn } from "@/lib/utils";
 
@@ -19,10 +18,14 @@ export function AppShell({ orgSlug, children }: AppShellProps) {
   const isLandingStudio = Boolean(
     pathname?.includes("/landing-pages/") && pathname?.endsWith("/edit")
   );
+  const isTemplateForge = Boolean(
+    pathname?.includes("/templates/forge")
+  );
+  const isFullBleedStudio = isLandingStudio || isTemplateForge;
   const isStudio =
     pathname?.includes("/qr/studio") ||
     pathname?.includes("/brain") ||
-    isLandingStudio;
+    isFullBleedStudio;
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = React.useState(false);
@@ -46,13 +49,13 @@ export function AppShell({ orgSlug, children }: AppShellProps) {
   }, []);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+    <div className="flex h-screen h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-background text-foreground">
       {/* Desktop Sidebar */}
       <Sidebar
         orgSlug={orgSlug}
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
-        className="hidden md:flex h-screen"
+        className="hidden md:flex h-screen h-[100dvh]"
       />
 
       {/* Mobile Drawer Backdrop */}
@@ -79,8 +82,8 @@ export function AppShell({ orgSlug, children }: AppShellProps) {
       </div>
 
       {/* Main Workspace Container */}
-      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
-        {!isLandingStudio && (
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0 h-full">
+        {!isFullBleedStudio && (
           <Topbar
             orgSlug={orgSlug}
             onOpenMobileMenu={() => setIsMobileOpen(true)}
@@ -90,31 +93,26 @@ export function AppShell({ orgSlug, children }: AppShellProps) {
 
         <div
           className={cn(
-            "flex-1 flex flex-col min-w-0",
-            isLandingStudio ? "overflow-hidden h-full" : "overflow-y-auto overflow-x-hidden"
+            "flex-1 flex flex-col min-w-0 min-h-0",
+            isFullBleedStudio ? "overflow-hidden h-full max-h-full" : "overflow-y-auto overflow-x-hidden"
           )}
         >
           <main
             className={cn(
-              "flex-1 w-full",
-              isLandingStudio
-                ? "p-0 max-w-none h-full flex flex-col overflow-hidden"
+              "flex-1 w-full min-h-0",
+              isFullBleedStudio
+                ? "p-0 max-w-none h-full max-h-full flex flex-col overflow-hidden"
                 : isStudio
                 ? "p-0 max-w-none"
                 : "p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto"
             )}
           >
-            <PageTransition className={isLandingStudio ? "h-full flex flex-col flex-1 overflow-hidden" : undefined}>
+            <PageTransition className={isFullBleedStudio ? "h-full max-h-full flex flex-col flex-1 min-h-0 overflow-hidden" : undefined}>
               {children}
             </PageTransition>
           </main>
 
-          {/* NYTRA Pixel Spectrum Closing Band */}
-          {!isStudio && (
-            <div className="mt-auto w-full">
-              <NytraPixelSpectrum height="sm" />
-            </div>
-          )}
+
         </div>
       </div>
 

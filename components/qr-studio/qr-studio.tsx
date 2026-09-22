@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Save, Download, Send } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 import { buildQrResolverUrl } from "@nxtqr/config";
+import { useSearchParams } from "next/navigation";
 
 interface QrStudioProps {
   orgSlug: string;
@@ -35,6 +36,9 @@ interface QrStudioProps {
 }
 
 export function QrStudio({ orgSlug, qrId }: QrStudioProps) {
+  const searchParams = useSearchParams();
+  const templateIdParam = searchParams.get("templateId");
+
   // 1. Core State
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -81,6 +85,21 @@ export function QrStudio({ orgSlug, qrId }: QrStudioProps) {
   // Load Real Data from D1 (Rules 0 & 1)
   const fetchStudioData = React.useCallback(async () => {
     if (!activeQrId) {
+      if (templateIdParam) {
+        try {
+          const tRes = await fetch(`/api/v1/templates/${templateIdParam}`);
+          if (tRes.ok) {
+            const tJson = await tRes.json();
+            if (tJson.data?.design_json) {
+              setDesign(tJson.data.design_json);
+              setQrName(`New QR (${tJson.data.name})`);
+              toast.info(`Applied template design: "${tJson.data.name}"`);
+            }
+          }
+        } catch (e) {
+          console.warn("[QrStudio] Could not load template:", e);
+        }
+      }
       setIsLoading(false);
       return;
     }

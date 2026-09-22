@@ -21,6 +21,10 @@ export interface PlanEntitlements {
   "api.monthlyRequests": number;
   "api.webhooks": boolean;
   "exports.vectorFormats": boolean; // SVG, PDF, EPS
+  "bulk.enabled": boolean;
+  "bulk.maxRowsPerBatch": number;
+  "templates.max": number;
+  "templates.brandLock": boolean;
 }
 
 export const TIER_DEFAULT_ENTITLEMENTS: Record<SaaSTier, PlanEntitlements> = {
@@ -40,6 +44,10 @@ export const TIER_DEFAULT_ENTITLEMENTS: Record<SaaSTier, PlanEntitlements> = {
     "api.monthlyRequests": 0,
     "api.webhooks": false,
     "exports.vectorFormats": false, // PNG only
+    "bulk.enabled": true,
+    "bulk.maxRowsPerBatch": 25,
+    "templates.max": 3,
+    "templates.brandLock": false,
   },
   PRO: {
     "qr.dynamic.max": 100,
@@ -57,6 +65,10 @@ export const TIER_DEFAULT_ENTITLEMENTS: Record<SaaSTier, PlanEntitlements> = {
     "api.monthlyRequests": 10000,
     "api.webhooks": false,
     "exports.vectorFormats": true, // SVG, PDF
+    "bulk.enabled": true,
+    "bulk.maxRowsPerBatch": 500,
+    "templates.max": 20,
+    "templates.brandLock": false,
   },
   BUSINESS: {
     "qr.dynamic.max": 1000,
@@ -74,6 +86,10 @@ export const TIER_DEFAULT_ENTITLEMENTS: Record<SaaSTier, PlanEntitlements> = {
     "api.monthlyRequests": 250000,
     "api.webhooks": true,
     "exports.vectorFormats": true, // SVG, PDF, EPS, CMYK
+    "bulk.enabled": true,
+    "bulk.maxRowsPerBatch": 2500,
+    "templates.max": 100,
+    "templates.brandLock": true,
   },
   ENTERPRISE: {
     "qr.dynamic.max": 9999999,
@@ -91,5 +107,9 @@ export const TIER_DEFAULT_ENTITLEMENTS: Record<SaaSTier, PlanEntitlements> = {
     "api.monthlyRequests": 5000000,
     "api.webhooks": true,
     "exports.vectorFormats": true,
+    "bulk.enabled": true,
+    "bulk.maxRowsPerBatch": 10000,
+    "templates.max": 1000,
+    "templates.brandLock": true,
   },
 };

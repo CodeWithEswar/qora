@@ -122,7 +122,7 @@ export function FolderDetailHeader({
                 {folder.qrCount === 1 ? "QR asset" : "QR assets"}
               </span>
               <span>•</span>
-              <span>Updated {formatRelativeTime(folder.updatedAt)}</span>
+              <span suppressHydrationWarning>Updated {formatRelativeTime(folder.updatedAt)}</span>
             </div>
           </div>
         </div>

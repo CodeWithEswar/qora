@@ -1,33 +1,93 @@
 import { NextRequest } from "next/server";
 import { authorizeApiRequest, apiSuccess, handleApiError } from "@/lib/api";
-import { requirePermission, PERMISSIONS } from "@nxtqr/permissions";
-import { deleteCustomRoleInD1 } from "@nxtqr/db";
-import { deleteRoleInStore } from "@/lib/domains/organization-store";
+import { SupabaseRolesRepository } from "@/lib/supabase/repositories/roles-control-plane";
+import {
+  UpdateCustomRoleDtoSchema,
+  DeleteRoleDtoSchema,
+} from "@nxtqr/contracts";
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string; roleId: string }> }
-) {
+interface Params {
+  params: Promise<{ orgSlug: string; roleId: string }>;
+}
+
+/**
+ * GET /api/v1/organizations/:orgSlug/roles/:roleId
+ * Retrieves granular role detail with permissions and assigned members.
+ */
+export async function GET(request: NextRequest, { params }: Params) {
   let ctx;
   try {
-    const { orgSlug, roleId } = await params;
+    const { roleId } = await params;
     ctx = await authorizeApiRequest(request, {
-      permission: PERMISSIONS.ROLES_DELETE,
+      permission: "organization.read",
     });
 
-    requirePermission(
-      { role: ctx.principal.role, permissions: [] },
-      PERMISSIONS.ROLES_DELETE
+    const role = await SupabaseRolesRepository.getRoleDetail(
+      ctx.organizationId,
+      roleId
     );
 
-    const d1 = ctx.db;
-    if (d1) {
-      await deleteCustomRoleInD1(d1, ctx.organizationId, roleId);
-    } else {
-      deleteRoleInStore(orgSlug, roleId);
-    }
+    return apiSuccess({ role }, ctx.requestId);
+  } catch (err) {
+    return handleApiError(err, ctx?.requestId || "req_unknown");
+  }
+}
 
-    return apiSuccess({ success: true, deletedRoleId: roleId }, ctx.requestId);
+/**
+ * PATCH /api/v1/organizations/:orgSlug/roles/:roleId
+ * Updates custom role name, description, and permissions.
+ */
+export async function PATCH(request: NextRequest, { params }: Params) {
+  let ctx;
+  try {
+    const { roleId } = await params;
+    ctx = await authorizeApiRequest(request, {
+      permission: "member.update_role",
+    });
+
+    const body = await request.json();
+    const validated = UpdateCustomRoleDtoSchema.parse(body);
+
+    const updated = await SupabaseRolesRepository.updateCustomRole(
+      ctx.organizationId,
+      roleId,
+      validated,
+      ctx.principal.actorId
+    );
+
+    return apiSuccess({ role: updated }, ctx.requestId);
+  } catch (err) {
+    return handleApiError(err, ctx?.requestId || "req_unknown");
+  }
+}
+
+/**
+ * DELETE /api/v1/organizations/:orgSlug/roles/:roleId
+ * Safely deletes a custom role with mandatory reassignment of assigned members.
+ */
+export async function DELETE(request: NextRequest, { params }: Params) {
+  let ctx;
+  try {
+    const { roleId } = await params;
+    ctx = await authorizeApiRequest(request, {
+      permission: "member.update_role",
+    });
+
+    const body = await request.json().catch(() => ({}));
+    const validated = DeleteRoleDtoSchema.parse(body);
+
+    const targetReassignId = validated.reassignToRoleId || validated.reassignRoleId || "";
+    await SupabaseRolesRepository.deleteCustomRole(
+      ctx.organizationId,
+      roleId,
+      targetReassignId,
+      ctx.principal.actorId
+    );
+
+    return apiSuccess(
+      { deleted: true, roleId, reassignedTo: targetReassignId },
+      ctx.requestId
+    );
   } catch (err) {
     return handleApiError(err, ctx?.requestId || "req_unknown");
   }

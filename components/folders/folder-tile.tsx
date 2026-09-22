@@ -182,7 +182,7 @@ export function FolderTile({
           )}
         </div>
 
-        <span className="text-[10px] font-mono text-muted-foreground/70 shrink-0">
+        <span className="text-[10px] font-mono text-muted-foreground/70 shrink-0" suppressHydrationWarning>
           Updated {formatRelativeTime(folder.updatedAt)}
         </span>
       </Link>

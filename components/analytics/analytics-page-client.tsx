@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { OrganizationAnalyticsDTO, ReportJobRecord } from "@/lib/supabase/repositories/analytics";
+import type { OrganizationAnalyticsDTO, ReportJobRecord } from "@/lib/supabase/repositories/analytics";
 import { AnalyticsHeader } from "./analytics-header";
 import { AnalyticsNav, AnalyticsTab } from "./analytics-nav";
 import { AnalyticsFilterBar } from "./analytics-filter-bar";

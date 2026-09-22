@@ -1,18 +1,14 @@
 import { NextRequest } from "next/server";
 import { authorizeApiRequest, apiSuccess, apiCreated, handleApiError } from "@/lib/api";
 import { requirePermission, PERMISSIONS } from "@nxtqr/permissions";
-import {
-  createInvitationInD1,
-  listOrganizationInvitations,
-} from "@nxtqr/db";
-import {
-  getOrCreateOrgData,
-  createInvitationInStore,
-} from "@/lib/domains/organization-store";
+import { SupabaseMembersRepository } from "@/lib/supabase/repositories/members";
+import { SupabaseOrgRepository } from "@/lib/supabase/repositories/organizations";
+import { NotFoundError } from "@nxtqr/contracts";
 import { z } from "zod";
 
 const InviteRequestSchema = z.object({
-  emails: z.array(z.string().email()),
+  email: z.string().email().optional(),
+  emails: z.array(z.string().email()).optional(),
   roleId: z.string().min(1),
   teamIds: z.array(z.string()).optional().default([]),
 });
@@ -28,13 +24,12 @@ export async function GET(
       permission: PERMISSIONS.MEMBERS_READ,
     });
 
-    const d1 = ctx.db;
-    if (!d1) {
-      const stored = getOrCreateOrgData(orgSlug);
-      return apiSuccess({ invitations: stored.invitations }, ctx.requestId);
+    const org = await SupabaseOrgRepository.getBySlugOrId(orgSlug);
+    if (!org) {
+      throw new NotFoundError(`Organization '${orgSlug}' not found.`);
     }
 
-    const invitations = await listOrganizationInvitations(d1, ctx.organizationId);
+    const invitations = await SupabaseMembersRepository.listInvitations(org.id);
     return apiSuccess({ invitations }, ctx.requestId);
   } catch (err) {
     return handleApiError(err, ctx?.requestId || "req_unknown");
@@ -60,38 +55,32 @@ export async function POST(
     const body = await request.json();
     const data = InviteRequestSchema.parse(body);
 
-    const d1 = ctx.db;
-    let lastInviteUrl = "";
+    const org = await SupabaseOrgRepository.getBySlugOrId(orgSlug);
+    if (!org) {
+      throw new NotFoundError(`Organization '${orgSlug}' not found.`);
+    }
 
-    if (d1) {
-      for (const email of data.emails) {
-        const res = await createInvitationInD1(
-          d1,
-          ctx.organizationId,
-          email,
-          data.roleId,
-          ctx.principal.actorId,
-          data.teamIds
-        );
-        lastInviteUrl = res.inviteUrl;
-      }
-    } else {
-      for (const email of data.emails) {
-        const res = createInvitationInStore(
-          orgSlug,
-          email,
-          data.roleId,
-          ctx.principal.actorId,
-          data.teamIds
-        );
-        lastInviteUrl = res.inviteUrl;
-      }
+    const emailList = data.emails || (data.email ? [data.email] : []);
+    if (emailList.length === 0) {
+      throw new Error("At least one email address is required.");
+    }
+
+    let lastInviteUrl = "";
+    for (const targetEmail of emailList) {
+      const res = await SupabaseMembersRepository.createInvitation(
+        org.id,
+        targetEmail,
+        data.roleId,
+        ctx.principal.actorId,
+        data.teamIds
+      );
+      lastInviteUrl = res.inviteUrl;
     }
 
     return apiCreated(
       {
         success: true,
-        invitedCount: data.emails.length,
+        invitedCount: emailList.length,
         inviteUrl: lastInviteUrl,
       },
       ctx.requestId

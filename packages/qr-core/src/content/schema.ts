@@ -162,3 +162,4 @@ export const QrContentV1Schema = z.discriminatedUnion("type", [
   PaymentQrContentSchema,
 ]);
 export type QrContentV1 = z.infer<typeof QrContentV1Schema>;
+export type QrType = QrContentV1["type"];

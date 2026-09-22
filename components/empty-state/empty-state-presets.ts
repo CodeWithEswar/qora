@@ -230,6 +230,37 @@ export const EMPTY_STATE_PRESETS: Record<string, EmptyStatePreset> = {
     description: "Completed billing transactions and Cashfree receipts will appear here.",
     staggerBaseDelay: 100,
   },
+  bulk: {
+    module: "Bulk QR",
+    letter: "B",
+    title: "Ingest structured CSV document",
+    description: "Drag and drop your spreadsheet export or enter data manually to generate validated QR assets in bulk.",
+    actionLabel: "Choose CSV File",
+    staggerBaseDelay: 0,
+  },
+  batchHistory: {
+    module: "Batch History",
+    letter: "B",
+    title: "No batch history yet",
+    description: "Bulk creation jobs will appear here after your organization runs its first batch operation.",
+    staggerBaseDelay: 100,
+  },
+  templates: {
+    module: "Templates",
+    letter: "T",
+    title: "Your Design System Starts Here",
+    description: "Create reusable QR identities for products, campaigns, teams, and every future scan. Design once, reuse with authoritative governance.",
+    actionLabel: "Create First Template",
+    staggerBaseDelay: 150,
+  },
+  filteredTemplates: {
+    module: "Templates",
+    letter: "T",
+    title: "No templates match these filters",
+    description: "Try adjusting your type, governance, or Brand Kit filter criteria.",
+    actionLabel: "Reset filters",
+    staggerBaseDelay: 0,
+  },
 };
 
 /**

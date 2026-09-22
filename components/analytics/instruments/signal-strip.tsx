@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { SignalInstrument } from "./signal-instrument";
-import { OrganizationAnalyticsDTO } from "@/lib/supabase/repositories/analytics";
+import type { OrganizationAnalyticsDTO } from "@/lib/supabase/repositories/analytics";
 
 interface SignalStripProps {
   data: OrganizationAnalyticsDTO;

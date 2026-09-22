@@ -41,15 +41,16 @@ export function EditFolderSheet({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (folder && open) {
-      setName(folder.name);
-      setEmoji(folder.emoji || "📁");
-      setAccentKey((folder.accentKey as FolderAccentKey) || "Graphite");
-      setDescription(folder.description || "");
-      setError(null);
-    }
-  }, [folder, open]);
+  const [prevFolderId, setPrevFolderId] = React.useState<string | null>(null);
+
+  if (folder && folder.id !== prevFolderId) {
+    setPrevFolderId(folder.id);
+    setName(folder.name);
+    setEmoji(folder.emoji || "📁");
+    setAccentKey((folder.accentKey as FolderAccentKey) || "Graphite");
+    setDescription(folder.description || "");
+    setError(null);
+  }
 
   if (!folder) return null;
 
@@ -87,9 +88,10 @@ export function EditFolderSheet({
       toast.success("Folder updated.");
       onOpenChange(false);
       onUpdated?.();
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
-      toast.error(err.message || "Could not update folder.");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setError(errMsg);
+      toast.error(errMsg || "Could not update folder.");
     } finally {
       setIsSubmitting(false);
     }
@@ -158,11 +160,11 @@ export function EditFolderSheet({
             </div>
             <div className="flex justify-between text-muted-foreground">
               <span>Created:</span>
-              <span className="text-foreground">{formatDate(folder.createdAt)}</span>
+              <span className="text-foreground" suppressHydrationWarning>{formatDate(folder.createdAt)}</span>
             </div>
             <div className="flex justify-between text-muted-foreground">
               <span>Last Modified:</span>
-              <span className="text-foreground">{formatRelativeTime(folder.updatedAt)}</span>
+              <span className="text-foreground" suppressHydrationWarning>{formatRelativeTime(folder.updatedAt)}</span>
             </div>
             <div className="flex justify-between text-muted-foreground">
               <span>Status:</span>

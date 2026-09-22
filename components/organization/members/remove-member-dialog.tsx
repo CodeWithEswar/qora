@@ -11,16 +11,13 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { AlertCircle, ShieldAlert } from "lucide-react";
+import type { AdminMemberSummary } from "@/lib/supabase/types/members";
 
 interface RemoveMemberDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  member: {
-    id: string;
-    name: string;
-    email: string;
-    roleName: string;
-  } | null;
+  member: AdminMemberSummary | null;
   onConfirm: (memberId: string) => Promise<void>;
 }
 
@@ -33,11 +30,16 @@ export function RemoveMemberDialog({
   const [isPending, setIsPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (isOpen) setError(null);
+  }, [isOpen]);
+
   if (!member) return null;
 
-  const isOwner = member.roleName.toLowerCase().includes("owner");
+  const isOwner = member.roleCode.toUpperCase() === "OWNER";
 
-  const handleRemove = async () => {
+  const handleRemove = async (e: React.MouseEvent) => {
+    e.preventDefault();
     setIsPending(true);
     setError(null);
     try {
@@ -52,39 +54,46 @@ export function RemoveMemberDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-md bg-background text-foreground border border-border/80">
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            Remove {member.name} from this workspace?
+          <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground uppercase tracking-wider">
+            <span>GOVERNANCE</span>
+            <span>/</span>
+            <span className="text-foreground font-semibold">REMOVE MEMBER</span>
+          </div>
+          <AlertDialogTitle className="text-base font-semibold text-foreground pt-1 flex items-center gap-2">
+            <ShieldAlert className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+            Remove {member.displayName} from workspace?
           </AlertDialogTitle>
-          <AlertDialogDescription>
-            They will immediately lose all access to this organization, its QR assets, campaigns, routing rules, and intelligence reports.
+          <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed">
+            This member will immediately forfeit all administrative access to this organization. Historical audit events, published assets, and previous changes will remain intact for governance accountability.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         {isOwner && (
-          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400">
-            <span className="font-semibold block mb-0.5">Workspace Owner Protection</span>
-            This user is designated as an Owner. The server will reject removal if this is the final remaining Owner in the organization.
+          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400 font-mono">
+            <span className="font-semibold block mb-0.5">OWNER SAFEGUARD</span>
+            Server-side verification will reject this operation if this is the final Owner in the organization.
           </div>
         )}
 
         {error && (
-          <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs">
-            {error}
+          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose} disabled={isPending}>
+        <AlertDialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60">
+          <AlertDialogCancel onClick={onClose} disabled={isPending} className="text-xs h-8">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleRemove}
             disabled={isPending}
-            className="bg-rose-600 hover:bg-rose-700 text-white"
+            className="text-xs h-8 bg-rose-600 hover:bg-rose-700 text-white"
           >
-            {isPending ? "Removing..." : "Remove member"}
+            {isPending ? "Removing..." : "Confirm Removal"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

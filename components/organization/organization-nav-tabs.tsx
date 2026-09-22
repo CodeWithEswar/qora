@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Building2, Shield, Mail, Activity, Settings, LayoutGrid } from "lucide-react";
+import { Users, Building2, CheckCheck, MessageSquare, Shield, Mail, Activity, Settings, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OrganizationNavTabsProps {
@@ -39,6 +39,18 @@ export function OrganizationNavTabs({
       icon: Building2,
     },
     {
+      id: "approvals",
+      label: "Approvals",
+      href: `/${orgSlug}/approvals`,
+      icon: CheckCheck,
+    },
+    {
+      id: "comments",
+      label: "Comments",
+      href: `/${orgSlug}/comments`,
+      icon: MessageSquare,
+    },
+    {
       id: "roles",
       label: "Roles & Permissions",
       href: `/${orgSlug}/settings/permissions`,
@@ -59,8 +71,8 @@ export function OrganizationNavTabs({
     },
     {
       id: "settings",
-      label: "Settings",
-      href: `/${orgSlug}/settings`,
+      label: "Workspace",
+      href: `/${orgSlug}/settings/workspace`,
       icon: Settings,
     },
   ];
@@ -74,9 +86,12 @@ export function OrganizationNavTabs({
             activeTab === tab.id ||
             (!activeTab && tab.id === "members" && pathname === `/${orgSlug}/members`) ||
             (tab.id === "teams" && pathname.includes(`/${orgSlug}/teams`)) ||
+            (tab.id === "approvals" && pathname.includes(`/${orgSlug}/approvals`)) ||
+            (tab.id === "comments" && pathname.includes(`/${orgSlug}/comments`)) ||
             (tab.id === "roles" && (pathname.includes(`/${orgSlug}/settings/permissions`) || pathname.includes(`/${orgSlug}/roles`))) ||
             (tab.id === "invitations" && pathname.includes(`/${orgSlug}/invitations`)) ||
-            (tab.id === "activity" && pathname.includes(`/${orgSlug}/activity`));
+            (tab.id === "activity" && pathname.includes(`/${orgSlug}/activity`)) ||
+            (tab.id === "settings" && pathname.includes(`/${orgSlug}/settings/workspace`));
 
           return (
             <Link

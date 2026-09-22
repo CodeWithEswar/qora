@@ -21,6 +21,19 @@ export const PERMISSIONS = {
   TEAMS_UPDATE: "teams.update",
   TEAMS_DELETE: "teams.delete",
 
+  // Approvals & Governance
+  APPROVALS_READ: "approvals.read",
+  APPROVALS_DECIDE: "approvals.decide",
+  APPROVALS_REQUEST: "approvals.request",
+  APPROVALS_CANCEL: "approvals.cancel",
+
+  // Comments & Collaboration
+  COMMENTS_READ: "comments.read",
+  COMMENTS_CREATE: "comments.create",
+  COMMENTS_EDIT: "comments.edit",
+  COMMENTS_DELETE: "comments.delete",
+  COMMENTS_RESOLVE: "comments.resolve",
+
   // Roles & Governance
   ROLES_READ: "roles.read",
   ROLES_CREATE: "roles.create",
@@ -88,6 +101,10 @@ export const PERMISSIONS = {
 
   // Audit
   AUDIT_READ: "audit.read",
+
+  // Operational Activity Intelligence
+  ACTIVITY_READ: "activity.read",
+  ACTIVITY_EXPORT: "activity.export",
 
   // Domains
   DOMAINS_READ: "domains.read",

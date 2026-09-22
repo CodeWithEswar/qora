@@ -260,7 +260,6 @@ html {
 
 * {
   border-color: var(--border);
-  outline-color: var(--primary);
 }
 
 html, body {

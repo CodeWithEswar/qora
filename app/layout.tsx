@@ -150,6 +150,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={`${inter.variable} ${cormorant.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
     >
       <head>

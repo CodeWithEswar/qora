@@ -1,15 +1,11 @@
 import { NextRequest } from "next/server";
-import { authorizeApiRequest, apiSuccess, apiCreated, handleApiError } from "@/lib/api";
-import { requirePermission, PERMISSIONS } from "@nxtqr/permissions";
-import { addTeamMembersInD1 } from "@nxtqr/db";
-import { addTeamMembersInStore } from "@/lib/domains/organization-store";
-import { z } from "zod";
+import { authorizeApiRequest, apiSuccess, handleApiError } from "@/lib/api";
+import { PERMISSIONS } from "@nxtqr/permissions";
+import { SupabaseTeamsRepository } from "@/lib/supabase/repositories/teams";
+import { SupabaseOrgRepository } from "@/lib/supabase/repositories/organizations";
+import { NotFoundError, ValidationError } from "@nxtqr/contracts";
 
-const AddTeamMembersSchema = z.object({
-  memberIds: z.array(z.string().min(1)),
-});
-
-export async function POST(
+export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ orgSlug: string; teamId: string }> }
 ) {
@@ -20,24 +16,24 @@ export async function POST(
       permission: PERMISSIONS.TEAMS_UPDATE,
     });
 
-    requirePermission(
-      { role: ctx.principal.role, permissions: [] },
-      PERMISSIONS.TEAMS_UPDATE
-    );
-
-    const body = await request.json();
-    const data = AddTeamMembersSchema.parse(body);
-
-    const d1 = ctx.db;
-    let addedCount = 0;
-    if (d1) {
-      const res = await addTeamMembersInD1(d1, ctx.organizationId, teamId, data.memberIds);
-      addedCount = res.addedCount;
-    } else {
-      addedCount = addTeamMembersInStore(orgSlug, teamId, data.memberIds);
+    const org = await SupabaseOrgRepository.getBySlugOrId(orgSlug);
+    if (!org) {
+      throw new NotFoundError(`Organization '${orgSlug}' not found.`);
     }
 
-    return apiCreated({ success: true, teamId, addedCount }, ctx.requestId);
+    const body = await request.json();
+    if (!Array.isArray(body.membershipIds)) {
+      throw new ValidationError("Body property 'membershipIds' must be an array of membership IDs.");
+    }
+
+    const result = await SupabaseTeamsRepository.updateTeamMembers(
+      org.id,
+      teamId,
+      body.membershipIds,
+      ctx.principal.actorId
+    );
+
+    return apiSuccess(result, ctx.requestId);
   } catch (err) {
     return handleApiError(err, ctx?.requestId || "req_unknown");
   }
